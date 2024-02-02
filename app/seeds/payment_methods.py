@@ -3,11 +3,11 @@ from sqlalchemy.sql import text
 
 def seed_payment_methods():
     amex = PaymentMethod(
-        user_id=1, last_4_digits='4563', exp_date='12/34')
+        user_id=1, last_4_digits='4563', exp_date='12/34', cvc='000')
     mastercard = PaymentMethod(
-        user_id=2, last_4_digits='7865',  exp_date='11/45')
+        user_id=2, last_4_digits='7865',  exp_date='11/45', cvc='000')
     visa = PaymentMethod(
-        user_id=3, last_4_digits='6798', exp_date='12/23')
+        user_id=3, last_4_digits='6798', exp_date='12/23', cvc='000')
 
     db.session.add(amex)
     db.session.add(mastercard)

@@ -15,7 +15,7 @@ def get_all_requests():
 @rx_routes.route('/')
 def get_current_users_requests():
     user_id = current_user.id 
-    rxs = Request.query.filter(or_(Request.sender_id == user_id, Request.sender_id == user_id)).all()
+    rxs = Request.query.filter(or_(Request.requester_id == user_id, Request.sender_id == user_id)).all()
     return {"Requests": [rx.to_dict() for rx in rxs]}
 
 @rx_routes.route('/', methods=["POST"])
