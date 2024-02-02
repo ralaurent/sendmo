@@ -8,6 +8,7 @@ from .models import db, User
 from .api.user_routes import user_routes
 from .api.auth_routes import auth_routes
 from .api.tx_routes import tx_routes
+from .api.rx_routes import rx_routes
 from .seeds import seed_commands
 from .config import Config
 
@@ -30,6 +31,7 @@ app.config.from_object(Config)
 app.register_blueprint(user_routes, url_prefix='/api/users')
 app.register_blueprint(auth_routes, url_prefix='/api/auth')
 app.register_blueprint(tx_routes, url_prefix='/api/transactions')
+app.register_blueprint(rx_routes, url_prefix='/api/requests')
 db.init_app(app)
 Migrate(app, db)
 

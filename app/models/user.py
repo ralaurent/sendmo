@@ -21,7 +21,7 @@ class User(db.Model, UserMixin):
     send_tx = db.relationship("Transaction", foreign_keys="[Transaction.sender_id]", back_populates="sender")
     send_rx = db.relationship("Transaction", foreign_keys="[Transaction.recipient_id]", back_populates="recipient")
     request_tx = db.relationship("Request", foreign_keys="[Request.requester_id]", back_populates="requester")
-    request_rx = db.relationship("Request", foreign_keys="[Request.recipient_id]", back_populates="recipient")
+    request_rx = db.relationship("Request", foreign_keys="[Request.sender_id]", back_populates="sender")
     payment_method = db.relationship("PaymentMethod", back_populates="user_payment_method")
     user = db.relationship("Follower", back_populates="follower")
 

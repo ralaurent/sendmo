@@ -3,11 +3,11 @@ from sqlalchemy.sql import text
 
 def seed_requests():
     rx1 = Request(
-        amount=100, requester_id=1, recipient_id=2)
+        amount=100, requester_id=1, sender_id=2)
     rx2 = Request(
-        amount=20, requester_id=1,  recipient_id=3)
+        amount=20, requester_id=1,  sender_id=3)
     rx3 = Request(
-        amount=30, requester_id=2, recipient_id=3)
+        amount=30, requester_id=2, sender_id=3)
 
     db.session.add(rx1)
     db.session.add(rx2)
