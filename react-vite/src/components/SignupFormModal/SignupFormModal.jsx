@@ -67,6 +67,7 @@ function SignupFormModal() {
             value={email}
             className="global-input"
             onChange={(e) => setEmail(e.target.value)}
+            maxLength={80}
             required
           />
         </label>
@@ -78,6 +79,7 @@ function SignupFormModal() {
             className="global-input"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            maxLength={50}
             required
           />
         </label>
@@ -89,6 +91,7 @@ function SignupFormModal() {
             className="global-input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            maxLength={50}
             required
           />
         </label>
@@ -99,6 +102,7 @@ function SignupFormModal() {
             type="password"
             className="global-input"
             value={confirmPassword}
+            maxLength={50}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />

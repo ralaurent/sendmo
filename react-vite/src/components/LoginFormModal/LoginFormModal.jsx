@@ -72,6 +72,7 @@ function LoginFormModal() {
             className="global-input"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            maxLength={80}
             required
           />
         </label>
@@ -83,6 +84,7 @@ function LoginFormModal() {
             className="global-input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            maxLength={50}
             required
           />
         </label>
