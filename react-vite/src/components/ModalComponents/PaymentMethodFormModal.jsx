@@ -27,6 +27,13 @@ function PaymentMethodFormModal({ paymentMethodId }){
         if(convertStringToDate(expDate) < new Date() || convertStringToDate(expDate) > convertStringToDate("12/35")){
             errors.expDate = "Invalid expiration date!"
         }
+        const [month, year] = expDate.split('/')
+        if(month == 0 || month > 12){
+            errors.expDate = "Invalid expiration date!"
+        }
+        if(cvc.length < 3){
+            errors.cvc = "Invalid CVC!"
+        }
 
         if(Object.keys(errors).length === 0){
             if(paymentMethodId){
@@ -52,7 +59,6 @@ function PaymentMethodFormModal({ paymentMethodId }){
     return (
     <>
         <h3>{paymentMethodId ? "Update Payment" : "Add Payment"}</h3>
-        {errors.server && <p>{errors.server}</p>}
         <form onSubmit={handleSubmit}>
         <label className='global-split-label'>
             Card Number
@@ -67,7 +73,6 @@ function PaymentMethodFormModal({ paymentMethodId }){
             required
             />
         </label>
-        {errors.card && <p>{errors.card}</p>}
         <div className='input-split'>
             <label className='global-split-label'>
                 Expiry Date
@@ -81,7 +86,6 @@ function PaymentMethodFormModal({ paymentMethodId }){
                 required
                 />
             </label>
-            {errors.exp && <p>{errors.exp}</p>}
             <label className='global-split-label'>
                 CVC
                 <span className='errors'>{errors.cvc}</span>

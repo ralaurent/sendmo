@@ -107,6 +107,7 @@ export function convertStringToDate(date) {
   
     return currentDate;
 }
+
 export const containsOnlyDigits = (input) => {
     for (let i = 0; i < input.length; i++) {
       const charCode = input.charCodeAt(i);
