@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "payment": "^2.4.6",
+    "react-email-validator": "^1.0.2"
+  }
+}

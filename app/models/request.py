@@ -20,6 +20,8 @@ class Request(db.Model):
             'id': self.id,
             'requester_id': self.requester_id,
             'sender_id': self.sender_id,
+            'requester_name': self.requester.username,
+            'sender_name': self.sender.username,
             'amount': self.amount,
             'accepted': self.accepted,
             'declined': self.declined,

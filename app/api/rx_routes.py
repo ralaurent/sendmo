@@ -7,18 +7,18 @@ from sqlalchemy import or_
 
 rx_routes = Blueprint('requests', __name__)
 
-@rx_routes.route('/')
+@rx_routes.route('')
 def get_all_requests():
     rxs = Request.query.all()
     return {"Requests": [rx.to_dict() for rx in rxs]}
 
-@rx_routes.route('/')
+@rx_routes.route('/current')
 def get_current_users_requests():
     user_id = current_user.id 
     rxs = Request.query.filter(or_(Request.requester_id == user_id, Request.sender_id == user_id)).all()
     return {"Requests": [rx.to_dict() for rx in rxs]}
 
-@rx_routes.route('/', methods=["POST"])
+@rx_routes.route('', methods=["POST"])
 def send_request():
     user_id = current_user.id 
 
@@ -37,23 +37,78 @@ def send_request():
         db.session.add(rx)
         db.session.commit()
 
-        return { "Requests": rx.to_dict() }, 201
+        return rx.to_dict(), 201
 
     return form.errors, 422
 
-@rx_routes.route('/<int:id>', methods=["POST"])
+@rx_routes.route('/<int:id>', methods=["PUT"])
+def update_request(id):
+    user_id = current_user.id 
+    rx = Request.query.get(id)
+
+    form = UpdateRxForm()
+    form['csrf_token'].data = request.cookies['csrf_token']
+
+    if rx:
+        try:
+            if form.validate_on_submit():
+                if not rx.accepted or not rx.declined:
+                    if rx.requester_id == user_id:
+                        if round(form.amount.data, 5) > 0:
+                            rx.amount = round(form.amount.data, 5)
+                            db.session.commit()
+
+                            return rx.to_dict(), 201
+                        
+                    return { "errors": { "message": "Unauthorized Access!" } }, 402
+                
+                return { "errors": { "message": "Request can't be changed after it's accepted!" } }, 402
+
+            return form.errors, 422
+        
+        except Exception as e:
+            db.session.rollback()
+            return { "errors": { "message": "Something went wrong!" } }, 500 
+    
+    return { "errors": { "message": "Request not found!" } }, 404 
+
+@rx_routes.route('/<int:id>', methods=["DELETE"])
+def delete_request(id):
+    user_id = current_user.id 
+    rx = Request.query.get(id)
+    
+    if rx:
+        try:
+            if not rx.accepted or not rx.declined:
+                if rx.requester_id == user_id:
+                    db.session.delete(rx)
+                    db.session.commit()
+
+                    return { "message": "Successfully deleted!" }, 201
+                
+                return { "errors": { "message": "Unauthorized Access!" } }, 402
+            
+            return { "errors": { "message": "Request can't be deleted after it's accepted!" } }, 402
+        
+        except Exception as e:
+            db.session.rollback()
+            return { "errors": { "message": "Something went wrong!" } }, 500 
+    
+    return { "errors": { "message": "Request not found!" } }, 404 
+
+@rx_routes.route('/<int:id>/accept', methods=["PUT"])
 def accept_request(id):
     user_id = current_user.id
     rx = Request.query.get(id)
 
     if rx:
-        requester = Request.query.get(rx.requester_id)
-        sender = Request.query.get(rx.sender_id)
+        requester = User.query.get(rx.requester_id)
+        sender = User.query.get(rx.sender_id)
 
         try:
             if not rx.accepted and not rx.declined:
-                if user_id == tx.sender_id:
-                    if round(rx.amount, 5) <= round(requester.balance, 5):
+                if user_id == rx.sender_id:
+                    if round(rx.amount, 5) <= round(sender.balance, 5):
 
                         requester.balance = round(requester.balance, 5) + round(rx.amount, 5)
                         db.session.commit()
@@ -75,76 +130,22 @@ def accept_request(id):
                         rx.accepted = True
                         db.session.commit()
 
-                        return { "Transactions": rx.to_dict(), "From": sender.to_dict(), "To": requester.to_dict() }, 201
+                        return rx.to_dict(), 201
                     
                     return { "errors": { "message": "Insufficient funds!" } }, 402 
                 
-                return { "errors": { "message": "Unauthorized Access!" } }, 402
+                return { "errors":  { "message": "Request can't be updated after it's accepted or declined!" } }, 402
             
             return { "errors": { "message": "Request can't be performed!" } }, 402
         
         except Exception as e:
             db.session.rollback()
+            print(e)
             return { "errors": { "message": "Something went wrong!" } }, 500 
     
     return { "errors": { "message": "Request not found!" } }, 404 
 
-@rx_routes.route('/<int:id>', methods=["PUT"])
-def update_request(id):
-    user_id = current_user.id 
-    rx = Request.query.get(id)
-
-    form = UpdateRxForm()
-    form['csrf_token'].data = request.cookies['csrf_token']
-
-    if rx:
-        try:
-            if form.validate_on_submit():
-                if not rx.accepted:
-                    if rx.requester_id == user_id:
-                        if round(form.amount.data, 5) > 0:
-                            rx.amount = round(form.amount.data, 5)
-                            db.session.commit()
-
-                            return { "Requests": rx.to_dict() }, 201
-                        
-                    return { "errors": { "message": "Unauthorized Access!" } }, 402
-                
-                return { "errors": { "message": "Request can't be changed after it's accepted!" } }, 402
-
-            return form.errors, 422
-        
-        except Exception as e:
-            db.session.rollback()
-            return { "errors": { "message": "Something went wrong!" } }, 500 
-    
-    return { "errors": { "message": "Request not found!" } }, 404 
-
-@rx_routes.route('/<int:id>', methods=["DELETE"])
-def delete_request(id):
-    user_id = current_user.id 
-    rx = Request.query.get(id)
-    
-    if rx:
-        try:
-            if not rx.accepted:
-                if rx.requester_id == user_id:
-                    db.session.delete(rx)
-                    db.session.commit()
-
-                    return { "message": "Successfully deleted!" }, 201
-                
-                return { "errors": { "message": "Unauthorized Access!" } }, 402
-            
-            return { "errors": { "message": "Request can't be deleted after it's accepted!" } }, 402
-        
-        except Exception as e:
-            db.session.rollback()
-            return { "errors": { "message": "Something went wrong!" } }, 500 
-    
-    return { "errors": { "message": "Request not found!" } }, 404 
-
-@rx_routes.route('/<int:id>/decline', methods=["DELETE"])
+@rx_routes.route('/<int:id>/decline', methods=["PUT"])
 def decline_request(id):
     user_id = current_user.id 
     rx = Request.query.get(id)
@@ -156,11 +157,11 @@ def decline_request(id):
                     rx.declined = True
                     db.session.commit()
 
-                    return { "message": "Successfully deleted!" }, 201
+                    return rx.to_dict(), 201
                 
                 return { "errors": { "message": "Unauthorized Access!" } }, 402
             
-            return { "errors": { "message": "Request can't be declined after it's accepted!" } }, 402
+            return { "errors": { "message": "Request can't be declined after it's accepted or declined!" } }, 402
         
         except Exception as e:
             db.session.rollback()

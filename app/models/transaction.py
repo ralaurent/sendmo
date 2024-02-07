@@ -16,11 +16,18 @@ class Transaction(db.Model):
     tx_comment = db.relationship("Comment", back_populates="transaction", cascade="all, delete-orphan")
 
     def to_dict(self):
+        content = None
+        if self.tx_comment:
+            content = self.tx_comment[0].content
+
         return {
             'id': self.id,
             'sender_id': self.sender_id,
             'recipient_id': self.recipient_id,
+            'sender_name': self.sender.username,
+            'recipient_name': self.recipient.username,
             'amount': self.amount,
             'strict_mode': self.strict_mode,
+            'comment': content,
             'created_at': self.created_at
         }

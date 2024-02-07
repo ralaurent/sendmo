@@ -1,0 +1,241 @@
+.header-container{
+    width: 100%;
+    height: fit-content;
+    /* background-color: red; */
+    position: relative;
+}
+
+.header-content{
+    height: 600px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    align-items: center;
+    justify-content: center;
+    /* background-color: green; */
+    /* padding: 90px */
+}
+
+.header-text{
+    font-size: 58px;
+    text-align: center;
+    font-weight: bold;
+    margin: 0px 25px;
+    color: var(--theme-color)
+}
+
+.sub-header-text{
+    font-size: 32px;
+    text-align: center;
+    font-weight: 400;
+    color: var(--theme-color)
+}
+
+.header-button{
+    padding: 12px 17px;
+    color: white;
+    background-color: black;
+    border: none;
+    font-size: 18px;
+    border-radius: 5px;
+    font-weight: bold;
+    position: relative;
+    z-index: 1;
+}
+
+.header-tabs{
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    transition: top 0.5s ease;
+    /* background-color: yellow; */
+    z-index: 0;
+}
+
+.top-right{
+    position: absolute;
+    right: 5%;
+    top: 20%;
+}
+
+.top-left{
+    position: absolute;
+    left: 10%;
+    top: 12%;
+    
+}
+
+.bottom-right{
+    position: absolute;
+    right: 14%;
+    bottom: 14%;
+    
+}
+.bottom-left{
+    position: absolute;
+    left: 14%;
+    bottom: 16%;
+    
+}
+
+.header-tx-tabs{
+    height: 90px;
+    /* width: auto */
+}
+
+.header-tabs-text{
+    display: none;
+}
+
+.header-content{
+    /* background-image: url('https://i.ibb.co/D9hh4NN/Union-1.png'); */
+    background-image: url('https://i.ibb.co/4dVPfLP/Union-1.png');
+    background-repeat: repeat;
+    background-size: auto;
+}
+
+.slider-container{
+    width: 100%;
+    height: fit-content;
+    padding: 50px 0px;
+    display: flex;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* background-color: red; */
+}
+
+.slider{
+    width: 100%;
+    max-width: 1150px;
+    /* background-color: black; */
+}
+
+.slider-text{
+    /* display: flex; */
+    align-self: flex-start;
+    margin-left: 35px;
+    margin-bottom: 20px;
+    font-size: 25px;
+    font-weight: 500;
+    /* color: #C4C4C4; */
+}
+
+.logos{
+    box-sizing: border-box;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%; 
+    position: relative;
+}
+
+.logos:before{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 75px;
+    height: 100%;
+    background: linear-gradient(to left, rgba(255,255,255,0), white);
+    content: "";
+    z-index: 1;
+}
+
+.logos:after{
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 75px;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0), white);
+    content: "";
+    z-index: 1;
+}
+
+.logo-slide{
+    display: inline-block;
+    /* box-sizing: border-box; */
+    animation: 15s slide infinite linear;
+}
+
+.logos:hover .logo-slide{
+    animation-play-state: paused;
+}
+  
+.logo-slide img{
+    height: 40px;
+    margin: 10px 20px
+}
+  
+.logo-slide img:hover{
+    cursor: pointer;
+}
+
+footer{
+    padding: 30px;
+    background-color: var(--theme-color);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.footer-content{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.footer-content-text{
+    color: white;
+    font-weight: 500;
+}
+  
+@keyframes slide{
+    from{
+        transform: translateX(0);
+    }
+    to{
+        transform: translateX(-100%);
+    }
+}
+  
+
+@media (max-width: 1150px){
+    .header-content{
+        height: 450px;
+        background-size: auto 100%;
+    }
+    .header-text{
+        font-size: 53px;
+    }
+    .header-tabs{
+        position: relative;
+        top: 0;
+        transition: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap:10px;
+        /* background-color: red; */
+    }
+
+    .header-tabs-text{
+        display: flex;
+        /* align-self: flex-start;
+        text-align: left; */
+        margin: 20px;
+        font-size: 25px;
+        font-weight: 500;
+        /* color: #C4C4C4; */
+    }
+
+    .header-tabs > *{
+        position: relative;
+        right: 0px;
+        top: 0px;
+        left: 0px;
+        bottom: 0px;
+    }
+}
