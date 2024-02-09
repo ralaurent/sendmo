@@ -90,7 +90,7 @@ function Home(){
                     <Logo/>
                     <div className='footer-content-text'>© Sendmo 2024</div>
                 </div>
-                <div onClick={() => redirectToExternalSite("https://github.com/ralaurent/sendmo")}>
+                <div className="clickable" onClick={() => redirectToExternalSite("https://github.com/ralaurent/sendmo")}>
                     <GitHub/>
                 </div>
             </footer>

@@ -66,7 +66,7 @@ function TxActivity(){
                 <div className='tx-change-content'>
                     {(transaction?.strict_mode && getElapsedTimeInSeconds(transaction?.created_at) <= 30) || !transaction?.strict_mode ? <div className='tx-change-content-container'>
                         <Pencil className='tx-change-content-icons disabled-icon'/>
-                        <Trash2 onClick={() => deleteTx(transaction?.id)} className='tx-change-content-icons'/>
+                        <Trash2 onClick={() => deleteTx(transaction?.id)} className='tx-change-content-icons clickable'/>
                     </div>:null}
                     {transaction?.strict_mode && getElapsedTimeInSeconds(transaction?.created_at) <= 30 && <div className='tx-timer'>
                         <div className='tx-timer-overlay' style={{width: `${(getElapsedTimeInSeconds(transaction?.created_at)/30) * 100}%`}}></div>

@@ -26,18 +26,21 @@ def send_request():
     form['csrf_token'].data = request.cookies['csrf_token']
 
     if form.validate_on_submit():
-        params = {
-            "requester_id": user_id,
-            "sender_id": form.sender.data,
-            "amount": form.amount.data,
-        }
+        if round(form.amount.data, 5) > 0:
+            params = {
+                "requester_id": user_id,
+                "sender_id": form.sender.data,
+                "amount": form.amount.data,
+            }
 
-        rx = Request(**params)
+            rx = Request(**params)
 
-        db.session.add(rx)
-        db.session.commit()
+            db.session.add(rx)
+            db.session.commit()
 
-        return rx.to_dict(), 201
+            return rx.to_dict(), 201
+        
+        return { "errors": { "message": "Invalid amount!" } }, 402
 
     return form.errors, 422
 
@@ -60,6 +63,8 @@ def update_request(id):
 
                             return rx.to_dict(), 201
                         
+                        return { "errors": { "message": "Invalid amount!" } }, 402
+                    
                     return { "errors": { "message": "Unauthorized Access!" } }, 402
                 
                 return { "errors": { "message": "Request can't be changed after it's accepted!" } }, 402

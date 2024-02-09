@@ -16,7 +16,7 @@ import { getElapsedTime, getElapsedTimeInSeconds, formatPrice, capitalize, conta
 function RxPayment(){
     const dispatch = useDispatch()
     const [strictMode, setStrictMode] = useState(''); 
-    const [amount, setAmount] = useState(''); 
+    const [amount, setAmount] = useState({}); 
     const [from, setFrom] = useState(''); 
     const defaultOption = [{ value: 'sendmo', label: 'Sendmo balance' },]
     const [paymentMethod, setPaymentMethod] = useState(defaultOption[0]); 
@@ -35,8 +35,8 @@ function RxPayment(){
         label: "$" + user.username
     }))
 
-    const handleToChange = (selectedOption) => {
-        setFrom(selectedOption.value)
+    const handleFromChange = (selectedOption) => {
+        setFrom(selectedOption)
     }
 
     const handleAmountChange = (e) => {
@@ -47,24 +47,31 @@ function RxPayment(){
         }
     }
 
-    const sendRx = () => {
+    const sendRx = async (e) => {
         let errors = {}
 
-        if(!from){
-            errors.to = "Invalid account, you are requesting from!" 
+        if(!from.value){
+            errors.from = "Invalid account, you are requesting from!" 
         }
-        if(!amount){
+        if(!amount || amount < 0){
             errors.amount = "Invalid amount!"
         }
 
         if(Object.keys(errors).length === 0){
-            dispatch(requestActions.addRx({
+            await dispatch(requestActions.addRx({
                 amount: amount,
-                sender: from,
+                sender: from.value,
             }))
+
+            clearInputs()
         }
 
        setErrors(errors)
+    }
+
+    const clearInputs = () => {
+        setFrom("")
+        setAmount("")
     }
 
     return(
@@ -74,7 +81,8 @@ function RxPayment(){
                 <Select 
                     // isClearable={true} 
                     options={requestFromOptions} 
-                    onChange={handleToChange} 
+                    value={from}
+                    onChange={handleFromChange} 
                     />
             </div>
             <div className='dual-container'>
@@ -83,6 +91,7 @@ function RxPayment(){
                     <input 
                     className='amount-input' 
                     type="number"
+                    value={amount}
                     onChange={(e) => handleAmountChange(e)}
                     required
                     ></input>

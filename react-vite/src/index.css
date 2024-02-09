@@ -34,3 +34,7 @@ h3{
 button:hover{
     cursor: pointer;
 }
+
+.clickable:hover{
+    cursor: pointer;
+}

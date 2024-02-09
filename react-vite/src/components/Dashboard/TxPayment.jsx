@@ -35,7 +35,7 @@ function TxPayment(){
     }))
 
     const handleToChange = (selectedOption) => {
-        setTo(selectedOption.value)
+        setTo(selectedOption)
     }
 
     let paymentMethodData = Object.values(paymentMethods)
@@ -76,29 +76,38 @@ function TxPayment(){
     }, [])
 
     
-    const sendTx = (e) => {
+    const sendTx = async (e) => {
         let errors = {}
 
         if(!to){
             errors.to = "Invalid recipient!" 
         }
-        if(!amount){
+        if(!amount || amount < 0){
             errors.amount = "Invalid amount!"
         }
-        if(amount > currentUser?.balance){
+        if(paymentMethod.value == "sendmo" && amount > currentUser?.balance){
             errors.amount = "Insufficient funds!"
+        }
+        if(paymentMethod.value != "sendmo" && amount > 10_000){
+            errors.amount = "Txs can't exceed $10,000!"
         }
 
         if(Object.keys(errors).length === 0){
-            dispatch(transactionActions.addTx({
+            await dispatch(transactionActions.addTx({
                 amount: amount,
                 type: paymentMethod.value === "sendmo",
-                recipient: to,
+                recipient: to.value,
                 strict: strictMode === "strict"
             }))
+            clearInputs()
         }
 
        setErrors(errors)
+    }
+
+    const clearInputs = () => {
+        setTo("")
+        setAmount("")
     }
 
     const CustomOption = ({ innerRef, innerProps, data }) => {
@@ -106,6 +115,9 @@ function TxPayment(){
             e.stopPropagation()
             dispatch(paymentMethodActions.deletePaymentMethod(data.value))
         };
+
+        const index = paymentMethodOptions.findIndex(pay => pay.value === data.value)
+        const paymentMethodData = paymentMethodOptions[index].label.split(" ")
       
         return (
           <div className='select-content-container' {...innerProps} style={{ backgroundColor: paymentMethod.value == data.value ? '#008AFF' : 'white', color: paymentMethod == data.value ? 'white' : 'black' }}>
@@ -115,7 +127,7 @@ function TxPayment(){
                 <div className='select-content-icons-container'>
                     <OpenModalButton
                     onButtonClick={() => {}}
-                    modalComponent={<PaymentMethodFormModal paymentMethodId={data.value}/>}
+                    modalComponent={<PaymentMethodFormModal paymentMethodId={data.value} data={{ last4Digits: paymentMethodData[1], expDate: paymentMethodData[2], cvc: paymentMethodData[3] }}/>}
                     buttonComponent={
                         <div style={{padding: "5px", display: "flex"}}>
                             <CreditCard className='select-content-icons'/>
@@ -138,8 +150,8 @@ function TxPayment(){
             <div className='dropdown'>
                 <label className='dropdown-label'>Send to <span className='errors'>{errors.to}</span></label>
                 <Select 
-                    // isClearable={true} 
                     options={toOptions} 
+                    value={to}
                     onChange={handleToChange} 
                     />
             </div>
@@ -147,14 +159,12 @@ function TxPayment(){
                 <label className='dropdown-label'>Payment Method</label>
                 <Select 
                     isSearchable={false} 
-                    options={paymentMethodOptions} 
-                    // defaultValue={paymentMethodOptions[0]} 
+                    options={paymentMethodOptions}
                     value={paymentMethod}
-                    setValue
                     onChange={handlePaymentMethodChange} 
                     components={{ Option: CustomOption }}
                     />
-                {!paymentMethodData.length && <OpenModalMenuItem
+                {<OpenModalMenuItem
                     textComponent={<div className='add-payment'><u>Add payment method</u></div>}
                     onItemClick={closeMenu}
                     modalComponent={<PaymentMethodFormModal />}
@@ -166,6 +176,7 @@ function TxPayment(){
                     <input 
                     className='amount-input' 
                     type="number"
+                    value={amount}
                     onChange={(e) => handleAmountChange(e)}
                     required
                     ></input>
@@ -176,7 +187,7 @@ function TxPayment(){
             <div className='strict-mode'>
                 <div>strict mode</div>
                 <input 
-                className='strict-input'
+                className='strict-input clickable'
                 type="radio" 
                 value="strict"
                 checked={strictMode === "strict"}

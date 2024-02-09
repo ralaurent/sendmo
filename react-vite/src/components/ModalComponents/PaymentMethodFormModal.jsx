@@ -9,11 +9,11 @@ import {
   } from '../../utils'
 import { useModal } from '../../context/Modal'
 
-function PaymentMethodFormModal({ paymentMethodId }){
+function PaymentMethodFormModal({ paymentMethodId, data }){
     const dispatch = useDispatch()
-    const [cardNum, setCardNum] = useState("")
-    const [expDate, setExpDate] = useState("")
-    const [cvc, setCVC] = useState("")
+    const [cardNum, setCardNum] = useState(data?.last4Digits ? `**** **** **** **** ${data?.last4Digits}`: "")
+    const [expDate, setExpDate] = useState(data?.expDate || "")
+    const [cvc, setCVC] = useState(data?.cvc || "")
     const [errors, setErrors] = useState({});
     const { closeModal } = useModal()
 

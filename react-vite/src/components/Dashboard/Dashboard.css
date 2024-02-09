@@ -328,6 +328,10 @@
 
 }
 
+.disabled-icon:hover{
+    cursor: not-allowed;
+}
+
 .tx-log{
     color: var(--secondary-text-color);
     font-size: 15px;

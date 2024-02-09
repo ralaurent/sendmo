@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useModal } from "../../context/Modal";
 import { thunkSignup } from "../../redux/session";
@@ -31,6 +31,12 @@ function SignupFormModal() {
         "Username must be at least 5 characters long!"
       })
     }
+    if(password.length < 8){
+      return setErrors({
+        password:
+          "Password must be at least 8 characters long!",
+      });
+    }
     if (password !== confirmPassword) {
       return setErrors({
         confirmPassword:
@@ -54,12 +60,28 @@ function SignupFormModal() {
     }
   };
 
+  useEffect(() => {
+    let errors = {}
+    if(email.length >= 40){
+      errors.email = "Email can't be longer than 40 characters!"
+      
+    }
+    if(username.length >= 20){
+      errors.username = "Username can't be longer than 20 characters!"
+      
+    }
+    if(password.length >= 50){
+      errors.password = "Password can't be longer than 50 characters!"
+    }
+
+    setErrors(errors)
+  }, [username, password])
+
   return (
     <>
-      <h3>Sign Up</h3>
-      {errors.server && <p>{errors.server}</p>}
+      <h3>Sign Up {<span className="errors">{errors.server}</span>}</h3>
       <form onSubmit={handleSubmit}>
-        <label  className="global-split-label">
+        <label className="global-split-label">
           Email
           {<span className="errors">{errors.email}</span>}
           <input
@@ -67,7 +89,7 @@ function SignupFormModal() {
             value={email}
             className="global-input"
             onChange={(e) => setEmail(e.target.value)}
-            maxLength={80}
+            maxLength={40}
             required
           />
         </label>
@@ -79,7 +101,7 @@ function SignupFormModal() {
             className="global-input"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            maxLength={50}
+            maxLength={20}
             required
           />
         </label>

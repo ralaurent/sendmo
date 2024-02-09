@@ -28,35 +28,43 @@ def send_transaction():
     form['csrf_token'].data = request.cookies['csrf_token']
 
     if form.validate_on_submit():
-        sender = User.query.get(user_id)
-        recipient = User.query.get(form.recipient.data)
+        # sender = User.query.get(user_id)
+        # recipient = User.query.get(form.recipient.data)
+
+        sender = db.session.get(User, user_id)
+        recipient = db.session.get(User, form.recipient.data)
         try:
-            if from_sendmo_balance:
+            if round(form.amount.data, 5) > 0:
 
-                if round(form.amount.data, 5) <= round(sender.balance, 5):
-                    sender.balance = round(sender.balance, 5) - round(form.amount.data, 5) 
-                    db.session.commit()
+                if from_sendmo_balance:
 
-                else:
-                    return { "errors": { "message": "Insufficient funds!" } }, 402 
-                
-            recipient.balance = round(recipient.balance, 5) + round(form.amount.data, 5) 
-            db.session.commit()
+                    if round(form.amount.data, 5) <= round(sender.balance, 5):
+                        sender.balance = round(sender.balance, 5) - round(form.amount.data, 5) 
+                        db.session.commit()
+
+                    else:
+                        return { "errors": { "message": "Insufficient funds!" } }, 402 
+                    
+                recipient.balance = round(recipient.balance, 5) + round(form.amount.data, 5) 
+                db.session.commit()
             
-            params = {
-                "sender_id": user_id,
-                "recipient_id": form.recipient.data,
-                "amount": form.amount.data,
-                "strict_mode": strict_mode
-            }
+            
+                params = {
+                    "sender_id": user_id,
+                    "recipient_id": form.recipient.data,
+                    "amount": form.amount.data,
+                    "strict_mode": strict_mode
+                }
 
-            tx = Transaction(**params)
+                tx = Transaction(**params)
 
-            db.session.add(tx)
-            db.session.commit()
+                db.session.add(tx)
+                db.session.commit()
 
-            return tx.to_dict(), 201
-        
+                return tx.to_dict(), 201
+            
+            return { "errors": { "message": "Invalid amount!" } }, 402
+            
         except Exception as e:
             db.session.rollback()
             return { "errors": { "message": "Something went wrong!" } }, 500 

@@ -52,11 +52,11 @@ function Dashboard(){
                     <div className='tx-header'>
                         <div className='tx-header-text'>Activity</div>
                         <div className='tx-activity-selector-container'>
-                            <div className='tx-activity-history selected'>
+                            <div className='tx-activity-history selected clickable'>
                                 History
                                 <History className='activity-icons'/>
                             </div>
-                            <div className='tx-activity-public'>
+                            <div className='tx-activity-public clickable'>
                                 Public
                                 <Globe2 className='activity-icons'/>
                             </div>
@@ -64,8 +64,8 @@ function Dashboard(){
                     </div>
                     <div className='tab-container'>
                         <div className='tab-switch-container'>
-                            <div onClick={() => setActivity(true)} className={activity ? 'tab-switch tab-selected' : 'tab-switch'}>Transactions</div>
-                            <div onClick={() => setActivity(false)} className={!activity ? 'tab-switch tab-selected' : 'tab-switch'}>Requests</div>
+                            <div onClick={() => setActivity(true)} className={activity ? 'tab-switch tab-selected clickable' : 'tab-switch clickable'}>Transactions</div>
+                            <div onClick={() => setActivity(false)} className={!activity ? 'tab-switch tab-selected clickable' : 'tab-switch clickable'}>Requests</div>
                         </div>
                     </div>
                     <div className='divider'></div>
@@ -80,8 +80,8 @@ function Dashboard(){
                     </div>
                     <div className='tab-container'>
                         <div className='tab-switch-container'>
-                            <div onClick={() => setPayment(true)} className={payment ? 'tab-switch tab-selected' : 'tab-switch'}>Send</div>
-                            <div onClick={() => setPayment(false)} className={!payment ? 'tab-switch tab-selected' : 'tab-switch'}>Request</div>
+                            <div onClick={() => setPayment(true)} className={payment ? 'tab-switch tab-selected clickable' : 'tab-switch clickable'}>Send</div>
+                            <div onClick={() => setPayment(false)} className={!payment ? 'tab-switch tab-selected clickable' : 'tab-switch clickable'}>Request</div>
                         </div>
                     </div>
                     <div className='tx-send-content-container'>

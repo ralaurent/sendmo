@@ -85,12 +85,12 @@ function RxActivity(){
                             ${editing && request?.id == editing ?
                             <div className='tx-log-block'>
                                 <div className='tx-log-send-update-input-container'>
-                                    <input className='tx-log-send-update-input' value={updatedAmount} onChange={(e) => handleAmountChange(e)} required></input>
+                                    <input className='tx-log-send-update-input' value={updatedAmount} onChange={(e) => handleAmountChange(e)} type="number" required></input>
                                     <div onClick={() => setEditing(false)} className='tx-log-exit-update-button'>
-                                        <X onClick={() => setEditing(false)} className='tx-log-exit-update-button-icon'/>    
+                                        <X onClick={() => setEditing(false)} className='tx-log-exit-update-button-icon clickable'/>    
                                     </div>
                                     <div className='tx-log-send-update-button'>
-                                        <ArrowRight onClick={() => updateRx(request?.id)} className='tx-log-send-update-button-icon'/>
+                                        <ArrowRight onClick={() => updateRx(request?.id)} className='tx-log-send-update-button-icon clickable'/>
                                     </div>
                                 </div>
                             </div>
@@ -105,8 +105,8 @@ function RxActivity(){
                 </div>
                 <div className='tx-change-content'>
                     {!request?.accepted && !request?.declined && <div className='tx-change-content-container'>
-                        <Pencil onClick={() => {setEditing(request?.id), setUpdatedAmount(request?.amount)}} className='tx-change-content-icons'/>
-                        <Trash2 onClick={() => deleteRx(request?.id)} className='tx-change-content-icons'/>
+                        <Pencil onClick={() => {setEditing(request?.id), setUpdatedAmount(request?.amount)}} className='tx-change-content-icons clickable'/>
+                        <Trash2 onClick={() => deleteRx(request?.id)} className='tx-change-content-icons clickable'/>
                     </div>}
                 </div>
             </div>
@@ -123,10 +123,10 @@ function RxActivity(){
                 <div className='tx-change-content'>
                     {!request?.accepted && !request?.declined && <div className='tx-change-content-container'>
                         <div className='tx-change-decline'>
-                            <X onClick={() => declineRx(request?.id)} className='tx-change-decline-icon'/>
+                            <X onClick={() => declineRx(request?.id)} className='tx-change-decline-icon clickable'/>
                         </div> 
                         <div className='tx-change-accept'>
-                            <Check onClick={() => acceptRx(request?.id)} className='tx-change-accept-icon'/>
+                            <Check onClick={() => acceptRx(request?.id)} className='tx-change-accept-icon clickable'/>
                         </div>
                     </div>}
                 </div>

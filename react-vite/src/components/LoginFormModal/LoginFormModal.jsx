@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { thunkLogin } from "../../redux/session";
 import { useDispatch } from "react-redux";
 import { useModal } from "../../context/Modal";
@@ -59,10 +59,9 @@ function LoginFormModal() {
     navigate("/dashboard")
   };
 
-
   return (
     <>
-      <h3>Log In</h3>
+      <h3>Log In {<span className="errors">{errors.server}</span>}</h3>
       <form onSubmit={handleSubmit}>
         <label className="global-split-label">
           Email
@@ -72,7 +71,7 @@ function LoginFormModal() {
             className="global-input"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            maxLength={80}
+            maxLength={40}
             required
           />
         </label>
