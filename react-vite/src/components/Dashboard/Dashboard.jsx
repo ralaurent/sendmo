@@ -54,7 +54,7 @@ function Dashboard(){
             navigate("/")
         }
     })
-
+    
     useEffect(() => {
         dispatch(currentUserActions.thunkUpdate(currentUser?.id))
     }, [transactions])
