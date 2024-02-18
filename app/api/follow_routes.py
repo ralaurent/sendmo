@@ -7,44 +7,45 @@ from sqlalchemy import and_
 
 follow_routes = Blueprint('follow', __name__)
 
-@follow_routes.route('/')
-def get_user_following(id):
-    user_id = current_user.id 
-    following = Following.query.filter(Following.subscriber_id == user_id).all()
-    return {"Following": [follow.to_dict() for follow in following]}
-
 @follow_routes.route('/<int:id>', methods=["POST"])
 def follow_user(id):
     user_id = current_user.id 
 
-    try:
-        params = {
-            "subscriber_id": user_id,
-            "subscribed_id": id,
-        }
+    following = db.session.query(Following).filter(and_(Following.follower_id == user_id, Following.following_id == id)).first()
 
-        follow = Following(**params)
+    if not following:
+        try:
+            params = {
+                "follower_id": user_id,
+                "following_id": id,
+            }
 
-        db.session.add(follow)
-        db.session.commit() 
+            follow = Following(**params)
 
-        return { "Following": follow.to_dict() }, 201
-    
-    except Exception as e:
+            db.session.add(follow)
+            db.session.commit() 
+
+            return { "message": "Successfully followed!" }, 200
+        
+        except Exception as e:
             db.session.rollback()
             return { "errors": { "message": "Something went wrong!" } }, 500 
+        
+    return { "errors": { "message": "Already following user!" } }, 404
 
 @follow_routes.route('/<int:id>', methods=["DELETE"])
 def unfollow_user(id):
     user_id = current_user.id 
-    following = Following.query.filter(and_(Following.subscriber_id == user_id, Following.subscribed_id == id)).all()
+    # following = Following.query.filter(and_(Following.follower_id == user_id, Following.following_id == id)).first()
+
+    following = db.session.query(Following).filter(and_(Following.follower_id == user_id, Following.following_id == id)).first()
 
     if following:
         try:
             db.session.delete(following)
             db.session.commit()
 
-            return { "message": "Successfully deleted!" }, 201
+            return { "message": "Successfully unfollowed!" }, 200
         
         except Exception as e:
             db.session.rollback()

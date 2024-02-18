@@ -10,7 +10,9 @@ payment_method_routes = Blueprint('payments', __name__)
 @payment_method_routes.route('')
 def get_current_users_payment_info():
     user_id = current_user.id 
-    payment_methods = PaymentMethod.query.filter(PaymentMethod.user_id == user_id).all()
+    # payment_methods = PaymentMethod.query.filter(PaymentMethod.user_id == user_id).all()
+
+    payment_methods = db.session.query(PaymentMethod).filter(PaymentMethod.user_id == user_id).all()
     return {"Payments": [payment_method.to_dict() for payment_method in payment_methods]}
 
 @payment_method_routes.route('', methods=["POST"])
@@ -43,7 +45,9 @@ def add_users_payment_info():
 
 @payment_method_routes.route('/<int:id>', methods=["PUT"])
 def update_users_payment_info(id):
-    payment_method = PaymentMethod.query.get(id)
+    # payment_method = PaymentMethod.query.get(id)
+
+    payment_method = db.session.get(PaymentMethod, id)
 
     form = PaymentMethodForm()
     form['csrf_token'].data = request.cookies['csrf_token']
@@ -67,7 +71,9 @@ def update_users_payment_info(id):
 
 @payment_method_routes.route('/<int:id>', methods=["DELETE"])
 def delete_users_payment_info(id):
-    payment_method = PaymentMethod.query.get(id)
+    # payment_method = PaymentMethod.query.get(id)
+    
+    payment_method = db.session.get(PaymentMethod, id)
 
     if payment_method:
         try:

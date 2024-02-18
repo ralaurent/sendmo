@@ -1,13 +1,16 @@
-from .db import db
+from .db import db, environment, SCHEMA, add_prefix_for_prod
 from datetime import datetime
 
 class Request(db.Model):
     __tablename__ = "requests"
 
+    if environment == "production":
+        __table_args__ = {'schema': SCHEMA}
+
     id = db.Column(db.Integer, nullable=False, primary_key=True)
     amount = db.Column(db.Float, nullable=False)
-    requester_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    requester_id = db.Column(db.Integer, db.ForeignKey(add_prefix_for_prod("users.id")), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey(add_prefix_for_prod("users.id")), nullable=False)
     accepted = db.Column(db.Boolean, nullable=False, default=False)
     declined = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)

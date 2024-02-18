@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 import { History, Globe2, Timer, MoreHorizontal, Pencil, Trash2, CreditCard, X } from 'lucide-react';
 import Select, { components } from 'react-select'
 import './Dashboard.css'
@@ -12,11 +12,13 @@ import * as usersActions from '../../redux/users'
 import * as paymentMethodActions from '../../redux/payment'
 import * as requestActions from '../../redux/request'
 import { getElapsedTime, getElapsedTimeInSeconds, formatPrice, capitalize, containsOnlyDigits } from '../../utils';
+import { TxRxContext } from '../../context/TxRxContext';
 
 function RxPayment(){
     const dispatch = useDispatch()
+    const { setRx } = useContext(TxRxContext)
     const [strictMode, setStrictMode] = useState(''); 
-    const [amount, setAmount] = useState({}); 
+    const [amount, setAmount] = useState(''); 
     const [from, setFrom] = useState(''); 
     const defaultOption = [{ value: 'sendmo', label: 'Sendmo balance' },]
     const [paymentMethod, setPaymentMethod] = useState(defaultOption[0]); 
@@ -53,16 +55,17 @@ function RxPayment(){
         if(!from.value){
             errors.from = "Invalid account, you are requesting from!" 
         }
-        if(!amount || amount < 0){
+        if(!amount || amount <= 0){
             errors.amount = "Invalid amount!"
         }
 
         if(Object.keys(errors).length === 0){
-            await dispatch(requestActions.addRx({
+            const rx = {
                 amount: amount,
                 sender: from.value,
-            }))
-
+            }
+            await dispatch(requestActions.addRx(rx))
+            setRx(rx)
             clearInputs()
         }
 

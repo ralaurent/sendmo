@@ -273,7 +273,35 @@
     background-color: var(--secondary-theme-color);
     color: var(--theme-color);
     border-radius: 50%;
-  }
+    position: relative
+}
+
+.followed{
+    background-color: var(--theme-color);
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.followed:hover{
+    cursor: pointer;
+}
+
+.un{
+    background-color: black;
+}
+
+.following-icon{
+    height: auto;
+    width: 11px;
+    color: white;
+}
 
 .tx-timer{
     height: 3px;
@@ -443,13 +471,22 @@
 .input-split{
     display: flex;
     /* justify-content: space-evenly; */
+    gap: 8px;
     width: 100%;
 }
 
 .global-label{
     display: flex;
     flex-direction: column;
-    gap: 5px
+    gap: 5px;
+
+}
+
+.global-split-label{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
 }
 
 .global-input{
@@ -464,13 +501,14 @@
     border: 1px var(--secondary-text-color) solid;
     border-radius: 3px;
     height: 34px;
-    flex: 1
+    flex: 1;
+    width: 10%;
 
 }
 
 .global-button{
     background-color: var(--theme-color);
-    padding: 10px 15px;
+    padding: 11px;
     border-radius: 50px;
     border: none;
     color: white;
@@ -478,6 +516,8 @@
     display: flex;
     gap: 5px;
     align-items: center;
+    justify-content: center;
+    width: 100%;
   }
 
 form{
@@ -485,10 +525,22 @@ form{
     flex-direction: column;
     gap: 16px
 }
+.global-split-button-content{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 
 .global-split-button-container{
     width: 100%;
     display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.demo{
+    background-color: black;
 }
 
 .horizontal{

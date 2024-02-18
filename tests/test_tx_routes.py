@@ -7,6 +7,7 @@ from app import app, db
 from app.models import User, Transaction, Comment
 from datetime import datetime, timedelta 
 import traceback
+import time
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -19,7 +20,7 @@ def _extract_csrf(set_cookie_header):
                 return csrf_token
     return None
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def client():
     app.config['TESTING'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
@@ -29,7 +30,7 @@ def client():
     with app.app_context():
         db.create_all()
 
-        response = client.get('/users')
+        response = client.get('/api/users')
         cookies = response.headers.get('Set-Cookie')
         csrf_token = _extract_csrf(cookies)
 
@@ -45,33 +46,147 @@ def client():
 
         yield client
 
-# def test_get_all_transactions(client):
-#     response = client.get('/api/transactions')
-#     assert response.status_code == 200
+@pytest.fixture(scope='function')
+def client2():
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+    client2 = app.test_client()
 
-# def test_get_current_users_transactions(client):
-#     response = client.get('/api/transactions/current')
-#     assert response.status_code == 200
+    with app.app_context():
+        db.create_all()
 
-def test_send_transaction(client):
+        response = client2.get('/api/users')
+        cookies = response.headers.get('Set-Cookie')
+        csrf_token = _extract_csrf(cookies)
+
+        with client2:
+            login_response = client2.post('/api/auth/login', data={
+                'email': 'bobbie@aa.io',
+                'password': 'password',
+                '_csrf_token': csrf_token,},
+                headers={'X-CSRF-TOKEN': csrf_token}
+            )
+
+        assert login_response.status_code == 200
+
+        yield client2
+
+        logout_response = client2.get('/api/auth/logout')
+        assert logout_response.status_code == 200
+
+@pytest.fixture
+def test_get_user1(client):
+    response = client.get('/api/users/1')
+
+    res = response.json
+
+    assert res["id"] == 1
+    assert res["username"] == "Demo"
+    assert response.status_code == 200
+
+    return res
+
+@pytest.fixture
+def test_get_user2(client):
+    response = client.get('/api/users/2')
+
+    res = response.json
+
+    assert res["id"] == 2
+    assert res["username"] == "marnie"
+    assert response.status_code == 200
+
+    return res
+
+@pytest.fixture
+def test_send_transaction(client, test_get_user1):
     response = client.post('/api/transactions', json={
         'recipient': 2,
         'amount': 10.0,
-        'type': False,
+        'type': True,
         'strict': False
     })
+    res = response.json
+
+    assert res["sender_id"] == test_get_user1["id"]
+    assert res["recipient_id"] == 2
+    assert res["amount"] == 10.0
     assert response.status_code == 201
 
-# def test_delete_transaction(client):
-#     response = client.delete('/api/transactions/1')
-#     assert response.status_code == 200
+    return res
 
-# def test_get_transaction_comment(client):
-#     response = client.get('/api/transactions/1/comments')
-#     assert response.status_code == 200
+@pytest.fixture
+def test_send_strict_transaction(client, test_get_user1):
+    response = client.post('/api/transactions', json={
+        'recipient': 2,
+        'amount': 10.0,
+        'type': True,
+        'strict': True
+    })
+    res = response.json
 
-# def test_add_comment_to_transaction(client):
-#     response = client.post('/api/transactions/1/comments', json={
-#         'content': 'Test comment'
-#     })
-#     assert response.status_code == 200
+    assert res["sender_id"] == test_get_user1["id"]
+    assert res["recipient_id"] == 2
+    assert res["amount"] == 10.0
+    assert response.status_code == 201
+
+    return res
+
+def test_check_transactions(client, test_get_user1, test_get_user2, test_send_transaction):
+    sender_balance = test_get_user1["balance"]
+    recipient_balance = test_get_user2["balance"]
+
+    tx = test_send_transaction
+
+    user1 = client.get('/api/users/1')
+    sender = user1.json
+
+    user2 = client.get('/api/users/2')
+    recipient = user2.json
+
+    assert sender["balance"] == sender_balance - tx["amount"]
+    assert recipient["balance"] == recipient_balance + tx["amount"]
+
+@pytest.fixture
+def test_delete_transaction(client, test_send_transaction):
+    response = client.delete(f'/api/transactions/{test_send_transaction["id"]}')
+
+    assert response.status_code == 200
+
+    return test_send_transaction
+
+def test_delete_transaction_not_found_error(client, test_delete_transaction):
+    response = client.delete(f'/api/transactions/{test_delete_transaction["id"]}')
+    res = response.json
+
+    assert response.status_code == 404
+    assert res["errors"]["message"] == 'Transaction not found!'
+
+def test_delete_transaction_unathorized_user_error(test_send_transaction, client2):
+    response = client2.delete(f'/api/transactions/{test_send_transaction["id"]}')
+    res = response.json
+
+    assert response.status_code == 402
+    assert res["errors"]["message"] == 'Unauthorized Access!'
+
+def test_strict_transaction_delete_error(client, test_send_strict_transaction):
+    time.sleep(30)
+    
+    response = client.delete(f'/api/transactions/{test_send_strict_transaction["id"]}')
+    res = response.json
+
+    assert response.status_code == 402
+    assert res["errors"]["message"] == 'Too much time has elapsed!'
+
+def test_send_transaction_invalid_amount_error(client):
+    response = client.post('/api/transactions', json={
+        'recipient': 2,
+        'amount': -10.0,
+        'type': True,
+        'strict': False
+    })
+    res = response.json
+
+    assert response.status_code == 402
+    assert res["errors"]["message"] == 'Invalid amount!'

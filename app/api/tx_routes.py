@@ -9,13 +9,41 @@ tx_routes = Blueprint('transactions', __name__)
 
 @tx_routes.route('')
 def get_all_transactions():
-    txs = Transaction.query.all()
+    # txs = Transaction.query.all()
+
+    txs = db.session.query(Transaction).all()
     return {"Transactions": [tx.to_dict() for tx in txs]}
 
 @tx_routes.route('/current')
 def get_current_users_transactions():
     user_id = current_user.id 
-    txs = Transaction.query.filter(or_(Transaction.sender_id == user_id, Transaction.recipient_id == user_id)).all()
+    # txs = Transaction.query.filter(or_(Transaction.sender_id == user_id, Transaction.recipient_id == user_id)).all()
+
+    txs = db.session.query(Transaction).filter(or_(Transaction.sender_id == user_id, Transaction.recipient_id == user_id)).all()
+    return {"Transactions": [tx.to_dict() for tx in txs]}
+
+@tx_routes.route('/public')
+def get_current_users_public_transactions():
+    user_id = current_user.id 
+    user = db.session.get(User, user_id)
+    user_data = user.to_dict()
+    
+    # txs = Transaction.query.filter(
+    #     or_(
+    #         Transaction.sender_id == user_id,
+    #         Transaction.recipient_id == user_id,
+    #         Transaction.sender_id.in_(user.following),
+    #         Transaction.recipient_id.in_(user.following)
+    #     )).all()
+
+    txs = db.session.query(Transaction).filter(
+        or_(
+            Transaction.sender_id == user_id,
+            Transaction.recipient_id == user_id,
+            Transaction.sender_id.in_(user_data["following"]),
+            Transaction.recipient_id.in_(user_data["following"])
+        )).all()
+    
     return {"Transactions": [tx.to_dict() for tx in txs]}
 
 @tx_routes.route('', methods=["POST"])
@@ -75,11 +103,16 @@ def send_transaction():
 def delete_transaction(id):
     user_id = current_user.id 
 
-    tx = Transaction.query.get(id)
+    # tx = Transaction.query.get(id)
+
+    tx = db.session.get(Transaction, id)
 
     if tx:
-        sender = User.query.get(user_id)
-        recipient = User.query.get(tx.recipient_id)
+        # sender = User.query.get(user_id)
+        # recipient = User.query.get(tx.recipient_id)
+
+        sender = db.session.get(User, user_id)
+        recipient = db.session.get(User, tx.recipient_id)
 
         delay = datetime.utcnow() - tx.created_at
         # if (tx.strict_mode and delay <= timedelta(minutes=1)) or not tx.strict_mode:
@@ -110,13 +143,18 @@ def delete_transaction(id):
 
 @tx_routes.route('/<int:id>/comments')
 def get_transaction_comment(id):
-    comments = Comment.query.filter(Comment.transaction_id == id).first()
+    # comments = Comment.query.filter(Comment.transaction_id == id).first()
+
+    comments = db.session.query(Comment).filter(Comment.transaction_id == id).first()
     return { "Comments": comments.to_dict() }
 
 @tx_routes.route('/<int:id>/comments', methods=["POST"])
 def add_comment_to_transaction(id):
-    tx = Transaction.query.get(id)
-    comments = Comment.query.all()
+    # tx = Transaction.query.get(id)
+    # comments = Comment.query.all()
+
+    tx = db.session.query(Transaction).get(id)
+    comments = db.session.query(Comment).all()
 
     form = CommentForm()
     form['csrf_token'].data = request.cookies['csrf_token']

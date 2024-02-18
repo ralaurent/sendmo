@@ -23,7 +23,7 @@ class User(db.Model, UserMixin):
     request_tx = db.relationship("Request", foreign_keys="[Request.requester_id]", back_populates="requester")
     request_rx = db.relationship("Request", foreign_keys="[Request.sender_id]", back_populates="sender")
     payment_method = db.relationship("PaymentMethod", back_populates="user_payment_method")
-    user = db.relationship("Following", back_populates="following")
+    follows = db.relationship("Following", back_populates="user")
 
     @property
     def password(self):
@@ -42,5 +42,6 @@ class User(db.Model, UserMixin):
             'username': self.username,
             'balance': self.balance,
             'card_added': self.card_added,
+            'following': [follow.following_id for follow in self.follows],
             'email': self.email
         }

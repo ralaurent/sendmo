@@ -16,7 +16,7 @@ import { TxRxContext } from '../../context/TxRxContext';
 import socket from './socket';
 import { followUser, unfollowUser } from './apis';
 
-function TxActivity(){
+function PublicTxActivity(){
     const dispatch = useDispatch()
     const { tx, setTx } = useContext(TxRxContext)
     const [strictMode, setStrictMode] = useState('');
@@ -37,8 +37,31 @@ function TxActivity(){
     let transactionData = Object.values(transactions)
 
     useEffect(() => {
-        dispatch(transactionActions.getCurrentUsersTxs())
+        dispatch(transactionActions.getCurrentUsersPublicTxs())
     }, [])
+
+    useEffect(() => {
+        dispatch(currentUserActions.thunkUpdate(currentUser?.id))
+    }, [transactions])
+
+    useEffect(() => {
+        socket.emit('broadcast_tx', { payload: tx.recipient })
+    }, [tx])
+
+    socket.once('broadcasted_tx', function(data) {
+        const payload = data.payload
+        if(currentUser?.id == payload || currentUser?.following.includes(payload)){
+            setTxTrace(!txTrace)
+        }
+    })
+
+    useEffect(() => {
+        dispatch(currentUserActions.thunkUpdate(currentUser?.id))
+        dispatch(transactionActions.getCurrentUsersPublicTxs())
+
+        return () => 
+        socket.off('broadcasted_tx')
+    }, [txTrace])
 
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -48,60 +71,15 @@ function TxActivity(){
         return () => clearInterval(intervalId)
     }, [])
 
-    const deleteTx = async (tx) => {
-        await dispatch(transactionActions.deleteTx(tx.id))
-        socket.emit('broadcast_tx', { payload: tx.recipient_id })
-    }
-
-    const handleFollow = async (userId) => {
-        await followUser(userId)
-        dispatch(currentUserActions.thunkUpdate(currentUser?.id))
-    }
-
-    const handleUnfollow = async (userId) => {
-        await unfollowUser(userId)
-        dispatch(currentUserActions.thunkUpdate(currentUser?.id))
-    }
-
     return(
         <>
         {transactionData.sort((a,b) => b.id-a.id).map((transaction) => (
-            transaction?.sender_id == currentUser?.id ?
+            
             <div key={transaction?.id} className='tx-content-container'>
                 <div className='tx-content-body'>
                     <div className='tx-content-profile'>{transaction?.sender_name[0].toUpperCase()}</div>
                     <div className='tx-content-body-content'>
-                        <i><div className='tx-log'>{"You"} paid {capitalize(transaction?.recipient_name)} <span className='tx-log-amount'>${transaction?.amount}</span></div></i>
-                        <div className='time-elapsed'>{getElapsedTime(transaction?.created_at)} <Timer className='time-elapsed-icon'/></div>
-                        {transaction?.comment ? transaction?.comment : <MoreHorizontal className='horizontal'/> }
-                    </div> 
-                </div>
-                <div className='tx-change-content'>
-                    {(transaction?.strict_mode && getElapsedTimeInSeconds(transaction?.created_at) <= 30) || !transaction?.strict_mode ? <div className='tx-change-content-container'>
-                        <Pencil className='tx-change-content-icons disabled-icon'/>
-                        <Trash2 onClick={() => deleteTx(transaction)} className='tx-change-content-icons clickable'/>
-                    </div>:null}
-                    {transaction?.strict_mode && getElapsedTimeInSeconds(transaction?.created_at) <= 30 && <div className='tx-timer'>
-                        <div className='tx-timer-overlay' style={{width: `${(getElapsedTimeInSeconds(transaction?.created_at)/30) * 100}%`}}></div>
-                    </div>}
-                </div>
-            </div>
-            :
-            <div key={transaction?.id} className='tx-content-container'>
-                <div className='tx-content-body'>
-                    <div className='tx-content-profile'>{transaction?.sender_name[0].toUpperCase()}
-                    {currentUser?.following.includes(transaction?.sender_id) ?
-                        <div onClick={() => handleUnfollow(transaction?.sender_id)} className={'un followed'}>
-                            <UserMinus className='following-icon'/> 
-                        </div>
-                        :
-                        <div onClick={() => handleFollow(transaction?.sender_id)} className='followed'>
-                            <UserPlus className='following-icon'/>  
-                        </div> 
-                    }
-                    </div>
-                    <div className='tx-content-body-content'>
-                        <i><div className='tx-log'>{capitalize(transaction?.sender_name)} paid {"You"} <span className='tx-log-amount'>${transaction?.amount}</span></div></i>
+                        <i><div className='tx-log'>{transaction?.sender_id == currentUser?.id ? "You" : capitalize(transaction?.sender_name)} paid {transaction?.recipient_id == currentUser?.id ? "You" : capitalize(transaction?.recipient_name)} <span className='tx-log-amount'>${transaction?.amount}</span></div></i>
                         <div className='time-elapsed'>{getElapsedTime(transaction?.created_at)} <Timer className='time-elapsed-icon'/></div>
                         {transaction?.comment ? transaction?.comment : <MoreHorizontal className='horizontal'/> }
                     </div> 
@@ -112,4 +90,5 @@ function TxActivity(){
         </>
     )
 }
-export default TxActivity
+
+export default PublicTxActivity

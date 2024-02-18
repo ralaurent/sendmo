@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 import { History, Globe2, Timer, MoreHorizontal, Pencil, Trash2, CreditCard, X, Check, Divide, ArrowRight } from 'lucide-react';
 import Select, { components } from 'react-select'
 import './Dashboard.css'
@@ -12,10 +12,14 @@ import * as requestActions from '../../redux/request'
 import * as usersActions from '../../redux/users'
 import * as paymentMethodActions from '../../redux/payment' 
 import { getElapsedTime, getElapsedTimeInSeconds, formatPrice, capitalize, containsOnlyDigits } from '../../utils';
+import { TxRxContext } from '../../context/TxRxContext';
+import socket from './socket';
 
 function RxActivity(){
     const dispatch = useDispatch()
+    const { rx, setRx } = useContext(TxRxContext)
     const [strictMode, setStrictMode] = useState(''); 
+    const [rxTrace, setRxTrace] = useState(false);
     const [amount, setAmount] = useState(''); 
     const [updatedAmount, setUpdatedAmount] = useState(''); 
     const [submitted, setSubmitted] = useState(''); 
@@ -25,6 +29,7 @@ function RxActivity(){
     const [paymentMethod, setPaymentMethod] = useState(defaultOption[0]); 
     const [errors, setErrors] = useState({})
     const [showMenu, setShowMenu] = useState(false);
+    const [rerender, setRerender] = useState(0); 
     const currentUser = useSelector((store) => store.session.user)
     const transactions = useSelector((store) => store.txs)
     const requests = useSelector((store) => store.rxs)
@@ -34,30 +39,39 @@ function RxActivity(){
     let requestData = Object.values(requests)
 
     useEffect(() => {
-        dispatch(currentUserActions.thunkUpdate(currentUser?.id))
-    }, [requests])
-
-    useEffect(() => {
         dispatch(requestActions.getCurrentUsersRxs())
     }, [])
 
-    const updateRx = (rxId) => {
-        dispatch(requestActions.updateRx(rxId, {
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+          setRerender(prevRerender => prevRerender + 1)
+        }, 1000)
+
+        return () => clearInterval(intervalId)
+    }, [])
+
+    const updateRx = async (rx) => {
+        dispatch(requestActions.updateRx(rx.id, {
             amount: updatedAmount
         }))
         setEditing(false)
+        socket.emit('broadcast_rx', { payload: rx.sender_id })
     }
 
-    const deleteRx = (rxId) => {
-        dispatch(requestActions.deleteRx(rxId))
+    const deleteRx =  async (rx) => {
+        await dispatch(requestActions.deleteRx(rx.id))
+        socket.emit('broadcast_rx', { payload: rx.sender_id })
     }
 
-    const acceptRx = (rxId) => {
-        dispatch(requestActions.acceptRx(rxId))
+    const acceptRx = async (rx) => {
+        await dispatch(requestActions.acceptRx(rx.id))
+        socket.emit('broadcast_rx', { payload: rx.requester_id })
+        socket.emit('broadcast_tx', { payload: rx.requester_id })
     }
 
-    const declineRx = (rxId) => {
-        dispatch(requestActions.declineRx(rxId))
+    const declineRx = async (rx) => {
+        await dispatch(requestActions.declineRx(rx.id))
+        socket.emit('broadcast_rx', { payload: rx.requester_id })
     }
 
     const handleAmountChange = (e) => {
@@ -90,7 +104,7 @@ function RxActivity(){
                                         <X onClick={() => setEditing(false)} className='tx-log-exit-update-button-icon clickable'/>    
                                     </div>
                                     <div className='tx-log-send-update-button'>
-                                        <ArrowRight onClick={() => updateRx(request?.id)} className='tx-log-send-update-button-icon clickable'/>
+                                        <ArrowRight onClick={() => updateRx(request)} className='tx-log-send-update-button-icon clickable'/>
                                     </div>
                                 </div>
                             </div>
@@ -106,7 +120,7 @@ function RxActivity(){
                 <div className='tx-change-content'>
                     {!request?.accepted && !request?.declined && <div className='tx-change-content-container'>
                         <Pencil onClick={() => {setEditing(request?.id), setUpdatedAmount(request?.amount)}} className='tx-change-content-icons clickable'/>
-                        <Trash2 onClick={() => deleteRx(request?.id)} className='tx-change-content-icons clickable'/>
+                        <Trash2 onClick={() => deleteRx(request)} className='tx-change-content-icons clickable'/>
                     </div>}
                 </div>
             </div>
@@ -123,10 +137,10 @@ function RxActivity(){
                 <div className='tx-change-content'>
                     {!request?.accepted && !request?.declined && <div className='tx-change-content-container'>
                         <div className='tx-change-decline'>
-                            <X onClick={() => declineRx(request?.id)} className='tx-change-decline-icon clickable'/>
+                            <X onClick={() => declineRx(request)} className='tx-change-decline-icon clickable'/>
                         </div> 
                         <div className='tx-change-accept'>
-                            <Check onClick={() => acceptRx(request?.id)} className='tx-change-accept-icon clickable'/>
+                            <Check onClick={() => acceptRx(request)} className='tx-change-accept-icon clickable'/>
                         </div>
                     </div>}
                 </div>

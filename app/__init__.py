@@ -13,6 +13,7 @@ from .api.payment_method_routes import payment_method_routes
 from .api.follow_routes import follow_routes
 from .seeds import seed_commands
 from .config import Config
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__, static_folder='../react-vite/dist', static_url_path='/')
 
@@ -39,9 +40,25 @@ app.register_blueprint(follow_routes, url_prefix='/api/follow')
 db.init_app(app)
 Migrate(app, db)
 
+# Socket.io
+socketio = SocketIO(app,debug=True,cors_allowed_origins='*')
+
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+
+@socketio.on('broadcast_tx')
+def handle_broadcast_tx(data):
+    payload = data['payload']
+    emit('broadcasted_tx', {'payload': payload}, broadcast=True)
+
+@socketio.on('broadcast_rx')
+def handle_broadcast_rx(data):
+    payload = data['payload']
+    emit('broadcasted_rx', {'payload': payload}, broadcast=True)
+
 # Application Security
 CORS(app)
-
 
 # Since we are deploying with Docker and Flask,
 # we won't be using a buildpack when we deploy to Heroku.

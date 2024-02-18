@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 import { History, Globe2, Timer, MoreHorizontal, Pencil, Trash2, CreditCard, X } from 'lucide-react';
 import Select, { components } from 'react-select'
 import './Dashboard.css'
@@ -8,6 +8,7 @@ import OpenModalMenuItem from '../Navigation/OpenModalMenuItem';
 import OpenModalButton from '../OpenModalButton/OpenModalButton';
 import * as currentUserActions from '../../redux/session'
 import * as transactionActions from '../../redux/transaction'
+import * as requestActions from '../../redux/request'
 import * as usersActions from '../../redux/users'
 import * as paymentMethodActions from '../../redux/payment'
 import { getElapsedTime, getElapsedTimeInSeconds, formatPrice, capitalize, containsOnlyDigits } from '../../utils';
@@ -16,6 +17,9 @@ import TxActivity from './TxActivity';
 import RxActivity from './RxActivity';
 import RxPayment from './RxPayment';
 import { useNavigate } from 'react-router-dom';
+import PublicTxActivity from './PublicTxActivity';
+import { TxRxContext } from '../../context/TxRxContext';
+import socket from './socket';
 
 const Sendmo = () => {
     return(
@@ -28,14 +32,20 @@ const Sendmo = () => {
 function Dashboard(){
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const { tx, setTx, rx, setRx } = useContext(TxRxContext)
+    const [strictMode, setStrictMode] = useState(''); 
+    const [txTrace, setTxTrace] = useState(false);
+    const [rxTrace, setRxTrace] = useState(false);
     const defaultOption = [{ value: 'sendmo', label: 'Sendmo balance' },]
     const [activity, setActivity] = useState(true)
+    const [displayedTransactions, setDisplayedTransactions] = useState(true)
     const [payment, setPayment] = useState(true)
     const [paymentMethod, setPaymentMethod] = useState(defaultOption[0]); 
     const [errors, setErrors] = useState({})
     const [showMenu, setShowMenu] = useState(false);
     const currentUser = useSelector((store) => store.session.user)
     const transactions = useSelector((store) => store.txs)
+    const requests = useSelector((store) => store.rxs)
     const users = useSelector((store) => store.users)
     const paymentMethods = useSelector((store) => store.paymentMethods)
 
@@ -45,6 +55,52 @@ function Dashboard(){
         }
     })
 
+    useEffect(() => {
+        dispatch(currentUserActions.thunkUpdate(currentUser?.id))
+    }, [transactions])
+
+    useEffect(() => {
+        dispatch(currentUserActions.thunkUpdate(currentUser?.id))
+    }, [requests])
+
+    useEffect(() => {
+        socket.emit('broadcast_tx', { payload: tx.recipient })
+    }, [tx])
+
+    socket.once('broadcasted_tx', function(data) {
+        const payload = data.payload;
+        if(currentUser?.id == payload){
+            setTxTrace(!txTrace)
+        }
+    })
+
+    useEffect(() => {
+        dispatch(currentUserActions.thunkUpdate(currentUser?.id))
+        dispatch(transactionActions.getCurrentUsersTxs())
+
+        return () => 
+        socket.off('broadcasted_tx')
+    }, [txTrace])
+
+    useEffect(() => {
+        socket.emit('broadcast_rx', { payload: rx.sender })
+    }, [rx])
+
+    socket.once('broadcasted_rx', function(data) {
+        const payload = data.payload;
+        if(currentUser?.id == payload){
+            setRxTrace(!rxTrace)
+        }
+    })
+
+    useEffect(() => {
+        dispatch(currentUserActions.thunkUpdate(currentUser?.id))
+        dispatch(requestActions.getCurrentUsersRxs())
+
+        return () => 
+        socket.off('broadcasted_rx')
+    }, [rxTrace])
+
     return(
         <div className='dashboard-container'>
             <div className='dashboard-content-container'>
@@ -52,27 +108,35 @@ function Dashboard(){
                     <div className='tx-header'>
                         <div className='tx-header-text'>Activity</div>
                         <div className='tx-activity-selector-container'>
-                            <div className='tx-activity-history selected clickable'>
+                            <div onClick={() => setDisplayedTransactions(true)} className={displayedTransactions ? 'tx-activity-history selected clickable' : 'tx-activity-public clickable'}>
                                 History
                                 <History className='activity-icons'/>
                             </div>
-                            <div className='tx-activity-public clickable'>
+                            <div onClick={() => setDisplayedTransactions(false)} className={!displayedTransactions ? 'tx-activity-history selected clickable' : 'tx-activity-public clickable'}>
                                 Public
                                 <Globe2 className='activity-icons'/>
                             </div>
                         </div>
                     </div>
-                    <div className='tab-container'>
-                        <div className='tab-switch-container'>
-                            <div onClick={() => setActivity(true)} className={activity ? 'tab-switch tab-selected clickable' : 'tab-switch clickable'}>Transactions</div>
-                            <div onClick={() => setActivity(false)} className={!activity ? 'tab-switch tab-selected clickable' : 'tab-switch clickable'}>Requests</div>
+                    {displayedTransactions?
+                        <>
+                        <div className='tab-container'>
+                            <div className='tab-switch-container'>
+                                <div onClick={() => setActivity(true)} className={activity ? 'tab-switch tab-selected clickable' : 'tab-switch clickable'}>Transactions</div>
+                                <div onClick={() => setActivity(false)} className={!activity ? 'tab-switch tab-selected clickable' : 'tab-switch clickable'}>Requests</div>
+                            </div>
                         </div>
-                    </div>
-                    <div className='divider'></div>
+                        <div className='divider'></div>
 
-                    <div className='tx-feed'>
-                        {activity ? <TxActivity/> : <RxActivity/>}
-                    </div>
+                        <div className='tx-feed'>
+                            {activity ? <TxActivity/> : <RxActivity/>}
+                        </div>
+                        </>
+                        :
+                        <div className='tx-feed'>
+                            <PublicTxActivity/>
+                        </div>
+                    }
                 </div>
                 <div className='tx-send'>
                     <div className='tx-header'>

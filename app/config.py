@@ -14,7 +14,12 @@ class Config:
     # if os.environ.get("TESTING") == "true":
     #     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///test.db")
     # else:
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL').replace('postgres://', 'postgresql://')
+    # SQLALCHEMY_DATABASE_URI = os.environ.get(
+    #     'DATABASE_URL').replace('postgres://', 'postgresql://')
+    
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///dev.db")
+
+    if SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
+        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace('postgres://', 'postgresql://')
 
     SQLALCHEMY_ECHO = True

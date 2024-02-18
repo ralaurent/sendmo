@@ -1,11 +1,14 @@
-from .db import db
+from .db import db, environment, SCHEMA, add_prefix_for_prod
 from datetime import datetime
 
 class PaymentMethod(db.Model):
     __tablename__ = "payment_methods"
 
+    if environment == "production":
+        __table_args__ = {'schema': SCHEMA}
+
     id = db.Column(db.Integer, nullable=False, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey(add_prefix_for_prod("users.id")), nullable=False)
     last_4_digits = db.Column(db.String(4), nullable=True)
     cvc = db.Column(db.String(3), nullable=True)
     exp_date = db.Column(db.String(5), nullable=True)

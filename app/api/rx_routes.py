@@ -9,13 +9,17 @@ rx_routes = Blueprint('requests', __name__)
 
 @rx_routes.route('')
 def get_all_requests():
-    rxs = Request.query.all()
+    # rxs = Request.query.all()
+
+    rxs = db.session.query(Request).all()
     return {"Requests": [rx.to_dict() for rx in rxs]}
 
 @rx_routes.route('/current')
 def get_current_users_requests():
     user_id = current_user.id 
-    rxs = Request.query.filter(or_(Request.requester_id == user_id, Request.sender_id == user_id)).all()
+    # rxs = Request.query.filter(or_(Request.requester_id == user_id, Request.sender_id == user_id)).all()
+
+    rxs = db.session.query(Request).filter(or_(Request.requester_id == user_id, Request.sender_id == user_id)).all()
     return {"Requests": [rx.to_dict() for rx in rxs]}
 
 @rx_routes.route('', methods=["POST"])
@@ -47,7 +51,9 @@ def send_request():
 @rx_routes.route('/<int:id>', methods=["PUT"])
 def update_request(id):
     user_id = current_user.id 
-    rx = Request.query.get(id)
+    # rx = Request.query.get(id)
+
+    rx = db.session.get(Request, id)
 
     form = UpdateRxForm()
     form['csrf_token'].data = request.cookies['csrf_token']
@@ -80,7 +86,9 @@ def update_request(id):
 @rx_routes.route('/<int:id>', methods=["DELETE"])
 def delete_request(id):
     user_id = current_user.id 
-    rx = Request.query.get(id)
+    # rx = Request.query.get(id)
+
+    rx = db.session.get(Request, id)
     
     if rx:
         try:
@@ -104,11 +112,16 @@ def delete_request(id):
 @rx_routes.route('/<int:id>/accept', methods=["PUT"])
 def accept_request(id):
     user_id = current_user.id
-    rx = Request.query.get(id)
+    # rx = Request.query.get(id)
+
+    rx = db.session.get(Request, id)
 
     if rx:
-        requester = User.query.get(rx.requester_id)
-        sender = User.query.get(rx.sender_id)
+        # requester = User.query.get(rx.requester_id)
+        # sender = User.query.get(rx.sender_id)
+
+        requester = db.session.get(User, rx.requester_id)
+        sender = db.session.get(User, rx.sender_id)
 
         try:
             if not rx.accepted and not rx.declined:
@@ -139,9 +152,9 @@ def accept_request(id):
                     
                     return { "errors": { "message": "Insufficient funds!" } }, 402 
                 
-                return { "errors":  { "message": "Request can't be updated after it's accepted or declined!" } }, 402
+                return { "errors":  { "message": "Unauthorized Access!" } }, 402
             
-            return { "errors": { "message": "Request can't be performed!" } }, 402
+            return { "errors": { "message": "Request can't be updated after it's accepted or declined!" } }, 402
         
         except Exception as e:
             db.session.rollback()
@@ -153,7 +166,9 @@ def accept_request(id):
 @rx_routes.route('/<int:id>/decline', methods=["PUT"])
 def decline_request(id):
     user_id = current_user.id 
-    rx = Request.query.get(id)
+    # rx = Request.query.get(id)
+    
+    rx = db.session.get(Request, id)
 
     if rx:
         try:

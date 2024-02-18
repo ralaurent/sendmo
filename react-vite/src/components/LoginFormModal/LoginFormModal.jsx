@@ -87,11 +87,11 @@ function LoginFormModal() {
             required
           />
         </label>
-        <div>
+        <div className="global-split-button-content">
           <button className="global-button" onClick={handleSubmit} type="submit">Log In</button>
           <div className="global-split-button-container">
-            <button className="global-button" onClick={handleDemo1Submit} type="submit">Demo User 1</button>
-            <button className="global-button" onClick={handleDemo2Submit} type="submit">Demo User 2</button>
+            <button className="demo global-button" onClick={handleDemo1Submit} type="submit">Demo User 1</button>
+            <button className="demo global-button" onClick={handleDemo2Submit} type="submit">Demo User 2</button>
           </div>
         </div>
       </form>

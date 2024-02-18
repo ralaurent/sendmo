@@ -58,7 +58,7 @@ function ProfileButton() {
     <>
       <div className="nav-container">
         {user && window.location.pathname === "/dashboard" ?
-        <div className="dashboard-profile" onClick={toggleMenu}>
+        <div className="dashboard-profile clickable" onClick={toggleMenu}>
           {user?.username[0].toUpperCase()}
         </div>
         :

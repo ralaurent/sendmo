@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 import { History, Globe2, Timer, MoreHorizontal, Pencil, Trash2, CreditCard, X } from 'lucide-react';
 import Select, { components } from 'react-select'
 import './Dashboard.css'
@@ -11,9 +11,11 @@ import * as transactionActions from '../../redux/transaction'
 import * as usersActions from '../../redux/users'
 import * as paymentMethodActions from '../../redux/payment'
 import { getElapsedTime, getElapsedTimeInSeconds, formatPrice, capitalize, containsOnlyDigits } from '../../utils';
+import { TxRxContext } from '../../context/TxRxContext';
 
 function TxPayment(){
     const dispatch = useDispatch()
+    const { setTx } = useContext(TxRxContext)
     const [strictMode, setStrictMode] = useState(''); 
     const [amount, setAmount] = useState(''); 
     const [to, setTo] = useState(''); 
@@ -82,7 +84,7 @@ function TxPayment(){
         if(!to){
             errors.to = "Invalid recipient!" 
         }
-        if(!amount || amount < 0){
+        if(!amount || amount <= 0){
             errors.amount = "Invalid amount!"
         }
         if(paymentMethod.value == "sendmo" && amount > currentUser?.balance){
@@ -93,12 +95,14 @@ function TxPayment(){
         }
 
         if(Object.keys(errors).length === 0){
-            await dispatch(transactionActions.addTx({
+            const tx = {
                 amount: amount,
                 type: paymentMethod.value === "sendmo",
                 recipient: to.value,
                 strict: strictMode === "strict"
-            }))
+            }
+            await dispatch(transactionActions.addTx(tx))
+            setTx(tx)
             clearInputs()
         }
 
@@ -165,7 +169,7 @@ function TxPayment(){
                     components={{ Option: CustomOption }}
                     />
                 {<OpenModalMenuItem
-                    textComponent={<div className='add-payment'><u>Add payment method</u></div>}
+                    textComponent={<div className='add-payment clickable'><u>Add payment method</u></div>}
                     onItemClick={closeMenu}
                     modalComponent={<PaymentMethodFormModal />}
                 />}

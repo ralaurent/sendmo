@@ -47,6 +47,18 @@ export const getCurrentUsersTxs = () => async dispatch => {
     }
 }
 
+export const getCurrentUsersPublicTxs = () => async dispatch => {
+    const response = await fetch(`/api/transactions/public`)
+  
+    if(response.ok){
+      const txs = await response.json()
+      dispatch(loadTxs(txs))
+    }else{
+        const errors = await response.json()
+        return errors
+    }
+}
+
 export const addTx = (tx) => async dispatch => {
     const response = await fetch(`/api/transactions`, {
         method: "POST",
