@@ -86,7 +86,7 @@ export function getElapsedTimeInSeconds(startDate) {
     const start = new Date(startDate).getTime()
     const now = new Date().getTime()
     const second = 1000
-    return Math.floor((now - start) / 1000)
+    return Math.floor((now - start) / second)
 }
 
 export function formatPrice(number) {

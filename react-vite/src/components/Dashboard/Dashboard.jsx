@@ -53,7 +53,7 @@ function Dashboard(){
         if(!currentUser?.id){
             navigate("/")
         }
-    })
+    }, [])
 
     useEffect(() => {
         dispatch(currentUserActions.thunkUpdate(currentUser?.id))
