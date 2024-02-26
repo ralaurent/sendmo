@@ -191,6 +191,11 @@ footer{
     color: white;
     font-weight: 500;
 }
+
+.footer-icon-container{
+    display: flex;
+    gap: 16px
+}
   
 @keyframes slide{
     from{

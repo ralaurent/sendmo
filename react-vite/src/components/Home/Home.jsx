@@ -13,6 +13,22 @@ const Logo = () => {
     )
 }
 
+const LinkedIn = () => {
+    return(
+        <svg width="46" height="46" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g clip-path="url(#clip0_155_2)">
+            <rect x="5" y="5" width="36" height="36" fill="white"/>
+            <path d="M36.4167 0H9.58333C4.29142 0 0 4.29142 0 9.58333V36.4167C0 41.7086 4.29142 46 9.58333 46H36.4167C41.7105 46 46 41.7086 46 36.4167V9.58333C46 4.29142 41.7105 0 36.4167 0ZM15.3333 36.4167H9.58333V15.3333H15.3333V36.4167ZM12.4583 12.903C10.6068 12.903 9.10417 11.3888 9.10417 9.522C9.10417 7.65517 10.6068 6.141 12.4583 6.141C14.3098 6.141 15.8125 7.65517 15.8125 9.522C15.8125 11.3888 14.3117 12.903 12.4583 12.903ZM38.3333 36.4167H32.5833V25.6757C32.5833 19.2203 24.9167 19.7091 24.9167 25.6757V36.4167H19.1667V15.3333H24.9167V18.7162C27.5923 13.7597 38.3333 13.3937 38.3333 23.4619V36.4167Z" fill="black"/>
+            </g>
+        <defs>
+            <clipPath id="clip0_155_2">
+            <rect width="46" height="46" fill="white"/>
+            </clipPath>
+        </defs>
+        </svg>
+    )
+}
+
 const GitHub = () => {
     return(
         <svg xmlns="http://www.w3.org/2000/svg" width="47" height="47" viewBox="0 0 47 47" fill="none">
@@ -90,8 +106,13 @@ function Home(){
                     <Logo/>
                     <div className='footer-content-text'>© Sendmo 2024</div>
                 </div>
+                <div className='footer-icon-container'>
+                <div className='clickable' onClick={() => redirectToExternalSite("https://www.linkedin.com/in/ralph-laurent-821622234/?profileId=ACoAADp3_BkBHnf5I4HGXi8JF1oRlvkxQV-J7QA")}>
+                    <LinkedIn/>
+                </div>
                 <div className="clickable" onClick={() => redirectToExternalSite("https://github.com/ralaurent/sendmo")}>
                     <GitHub/>
+                </div>
                 </div>
             </footer>
         </div>
