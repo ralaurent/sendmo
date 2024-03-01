@@ -71,6 +71,25 @@ export const addTx = (tx) => async dispatch => {
     if(response.ok){
         const tx = await response.json()
         dispatch(createTx(tx))
+        return tx.id
+    }else{
+        const errors = await response.json()
+        return errors
+    }
+}
+
+export const addTxComment = (txId, content) => async dispatch => {
+    const response = await fetch(`/api/transactions/${txId}/comment`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(content)
+    })
+
+    if(response.ok){
+        const tx = await response.json()
+        dispatch(editTx(tx))
     }else{
         const errors = await response.json()
         return errors

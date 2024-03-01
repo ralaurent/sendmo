@@ -10,12 +10,15 @@ import * as currentUserActions from '../../redux/session'
 import * as transactionActions from '../../redux/transaction'
 import * as usersActions from '../../redux/users'
 import * as paymentMethodActions from '../../redux/payment'
+import { useModal } from '../../context/Modal';
 import { getElapsedTime, getElapsedTimeInSeconds, formatPrice, capitalize, containsOnlyDigits } from '../../utils';
 import { TxRxContext } from '../../context/TxRxContext';
+import AddCommentModal from '../ModalComponents/AddComment';
 
 function TxPayment(){
     const dispatch = useDispatch()
     const { setTx } = useContext(TxRxContext)
+    const { setModalContent, setOnModalClose } = useModal();
     const [strictMode, setStrictMode] = useState(''); 
     const [amount, setAmount] = useState(''); 
     const [to, setTo] = useState(''); 
@@ -77,6 +80,9 @@ function TxPayment(){
         dispatch(paymentMethodActions.getPaymentMethod())
     }, [])
 
+    const handleComments = (txId) => {
+        setModalContent(<AddCommentModal txId={txId}/>);
+    }
     
     const sendTx = async (e) => {
         let errors = {}
@@ -101,7 +107,8 @@ function TxPayment(){
                 recipient: to.value,
                 strict: strictMode === "strict"
             }
-            await dispatch(transactionActions.addTx(tx))
+            const txId = await dispatch(transactionActions.addTx(tx))
+            handleComments(txId)
             setTx(tx)
             clearInputs()
         }

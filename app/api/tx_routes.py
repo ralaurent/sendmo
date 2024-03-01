@@ -141,39 +141,39 @@ def delete_transaction(id):
     
     return { "errors": { "message": "Transaction not found!" } }, 404 
 
-@tx_routes.route('/<int:id>/comments')
+@tx_routes.route('/<int:id>/comment')
 def get_transaction_comment(id):
     # comments = Comment.query.filter(Comment.transaction_id == id).first()
 
     comments = db.session.query(Comment).filter(Comment.transaction_id == id).first()
     return { "Comments": comments.to_dict() }
 
-@tx_routes.route('/<int:id>/comments', methods=["POST"])
+@tx_routes.route('/<int:id>/comment', methods=["POST"])
 def add_comment_to_transaction(id):
     # tx = Transaction.query.get(id)
     # comments = Comment.query.all()
 
     tx = db.session.query(Transaction).get(id)
-    comments = db.session.query(Comment).all()
+    comment = db.session.query(Comment).filter(Comment.transaction_id==id).first()
 
     form = CommentForm()
     form['csrf_token'].data = request.cookies['csrf_token']
 
     if tx:
-        if len(comments) < 2:
+        if not comment:
             if form.validate_on_submit():
                 
-                    params = {
-                        "transaction_id": tx.id,
-                        "content": form.content.data,
-                    }
+                params = {
+                    "transaction_id": tx.id,
+                    "content": form.content.data,
+                }
 
-                    tx_comment = Comment(**params)
+                tx_comment = Comment(**params)
 
-                    db.session.add(tx_comment)
-                    db.session.commit()
+                db.session.add(tx_comment)
+                db.session.commit()
 
-                    return { "Comment": tx_comment.to_dict() }
+                return tx.to_dict(), 201
 
             return form.errors, 422
         

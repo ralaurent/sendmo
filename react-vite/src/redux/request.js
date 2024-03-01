@@ -40,7 +40,6 @@ export const getCurrentUsersRxs = () => async dispatch => {
   
     if(response.ok){
       const rxs = await response.json()
-      console.log(rxs)
       dispatch(loadRxs(rxs))
     }else{
         const errors = await response.json()
