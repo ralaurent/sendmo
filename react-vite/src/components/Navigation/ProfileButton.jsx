@@ -4,10 +4,17 @@ import { thunkLogout } from "../../redux/session";
 import OpenModalMenuItem from "./OpenModalMenuItem";
 import LoginFormModal from "../LoginFormModal";
 import SignupFormModal from "../SignupFormModal";
+import { DoorOpen } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import './Navigation.css'
+import OpenModalButton from "../OpenModalButton/OpenModalButton";
+import { useNavigate } from "react-router-dom";
 
 function ProfileButton() {
+  const navigate = useNavigate()
   const dispatch = useDispatch();
   const [showMenu, setShowMenu] = useState(false);
+  const [isFocused, setIsFocused] = useState(false)
   const user = useSelector((store) => store.session.user);
   const ulRef = useRef();
 
@@ -15,6 +22,14 @@ function ProfileButton() {
     e.stopPropagation(); // Keep from bubbling up to document and triggering closeMenu
     setShowMenu(!showMenu);
   };
+
+  const login = () => {
+    return
+  }
+
+  const navigateToDashboard = () => {
+    navigate("/dashboard")
+  }
 
   useEffect(() => {
     if (!showMenu) return;
@@ -36,16 +51,35 @@ function ProfileButton() {
     e.preventDefault();
     dispatch(thunkLogout());
     closeMenu();
+    navigate("/")
   };
 
   return (
     <>
-      <button onClick={toggleMenu}>
-        <i className="fas fa-user-circle" />
-      </button>
+      <div className="nav-container">
+        {user && window.location.pathname === "/dashboard" ?
+        <div className="dashboard-profile clickable" onClick={toggleMenu}>
+          {user?.username[0].toUpperCase()}
+        </div>
+        :
+        !user ?
+        <OpenModalButton
+        onButtonClick={login}
+        modalComponent={<LoginFormModal />}
+        buttonComponent={<button className="dashboard-button">
+        login
+        <ArrowRight/>
+      </button>}
+        />:
+        <button onClick={navigateToDashboard} className="dashboard-button">
+          dashboard
+          <ArrowRight/>
+        </button>
+        }
+      </div>
       {showMenu && (
-        <ul className={"profile-dropdown"} ref={ulRef}>
-          {user ? (
+        <div className={"profile-dropdown"} ref={ulRef}>
+          {/* {user ? (
             <>
               <li>{user.username}</li>
               <li>{user.email}</li>
@@ -66,8 +100,15 @@ function ProfileButton() {
                 modalComponent={<SignupFormModal />}
               />
             </>
-          )}
-        </ul>
+          )} */}
+          {user && <>
+              <div>{user.username}</div>
+              <div>{user.email}</div>
+              <div>
+                <button className="log-out" onClick={logout}>Log Out <DoorOpen className="log-out-door"/></button>
+              </div>
+            </>}
+        </div>
       )}
     </>
   );

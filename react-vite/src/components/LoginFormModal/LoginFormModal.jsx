@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { thunkLogin } from "../../redux/session";
 import { useDispatch } from "react-redux";
 import { useModal } from "../../context/Modal";
+import { useNavigate } from "react-router-dom";
 import "./LoginForm.css";
 
 function LoginFormModal() {
+  const navigate = useNavigate()
   const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,34 +27,73 @@ function LoginFormModal() {
       setErrors(serverResponse);
     } else {
       closeModal();
+      navigate("/dashboard")
     }
+  };
+
+  const handleDemo1Submit = async (e) => {
+    e.preventDefault();
+
+    await dispatch(
+      thunkLogin({
+        email: "demo@aa.io",
+        password: "password",
+      })
+    );
+
+    closeModal();
+    navigate("/dashboard")
+  };
+
+  const handleDemo2Submit = async (e) => {
+    e.preventDefault();
+
+    await dispatch(
+      thunkLogin({
+        email: "marnie@aa.io",
+        password: "password",
+      })
+    );
+
+    closeModal();
+    navigate("/dashboard")
   };
 
   return (
     <>
-      <h1>Log In</h1>
+      <h3>Log In {<span className="errors">{errors.server}</span>}</h3>
       <form onSubmit={handleSubmit}>
-        <label>
+        <label className="global-split-label">
           Email
+        {<span className="errors">{errors.email}</span>}
           <input
             type="text"
+            className="global-input"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            maxLength={40}
             required
           />
         </label>
-        {errors.email && <p>{errors.email}</p>}
-        <label>
+        <label className="global-split-label">
           Password
+        {<span className="errors">{errors.password}</span>}
           <input
             type="password"
+            className="global-input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            maxLength={50}
             required
           />
         </label>
-        {errors.password && <p>{errors.password}</p>}
-        <button type="submit">Log In</button>
+        <div className="global-split-button-content">
+          <button className="global-button" onClick={handleSubmit} type="submit">Log In</button>
+          <div className="global-split-button-container">
+            <button className="demo global-button" onClick={handleDemo1Submit} type="submit">Demo User 1</button>
+            <button className="demo global-button" onClick={handleDemo2Submit} type="submit">Demo User 2</button>
+          </div>
+        </div>
       </form>
     </>
   );

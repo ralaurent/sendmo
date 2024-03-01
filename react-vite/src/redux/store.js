@@ -6,9 +6,17 @@ import {
 } from "redux";
 import thunk from "redux-thunk";
 import sessionReducer from "./session";
+import txsReducer from "./transaction";
+import rxsReducer from "./request";
+import usersReducer from "./users";
+import paymentMethodsReducer from "./payment";
 
 const rootReducer = combineReducers({
   session: sessionReducer,
+  txs: txsReducer,
+  rxs: rxsReducer,
+  users: usersReducer,
+  paymentMethods: paymentMethodsReducer,
 });
 
 let enhancer;
