@@ -20,16 +20,19 @@ from plaid.model.accounts_balance_get_request_options import AccountsBalanceGetR
 
 payment_method_routes = Blueprint('payments', __name__)
 
-configuration = plaid.Configuration(
-    host=plaid.Environment.Sandbox,
-    api_key={
-        'clientId': os.environ.get('PLAID_CLIENT'),
-        'secret': os.environ.get('PLAID_SECRET'),
-    }
-)
+def create_plaid_client():
+    configuration = plaid.Configuration(
+        host=plaid.Environment.Sandbox,
+        api_key={
+            'clientId': os.environ.get('PLAID_CLIENT'),
+            'secret': os.environ.get('PLAID_SECRET'),
+        }
+    )
 
-api_client = plaid.ApiClient(configuration)
-plaid_client = plaid_api.PlaidApi(api_client)
+    api_client = plaid.ApiClient(configuration)
+    return plaid_api.PlaidApi(api_client)
+
+plaid_client = create_plaid_client()
 
 @payment_method_routes.route('/link')
 def get_plaid_link_token():
