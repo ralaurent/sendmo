@@ -98,10 +98,10 @@ def get_current_users_plaid_banking_info():
     access_token = payment_method.access_token 
 
     try:
-        request = AccountsGetRequest(
+        plaid_request = AccountsGetRequest(
             access_token=access_token
         )
-        accounts_response = plaid_client.accounts_get(request)
+        accounts_response = plaid_client.accounts_get(plaid_request)
         return {"Payments": accounts_response.to_dict()}
     except plaid.ApiException as e:
         response = json.loads(e.body)

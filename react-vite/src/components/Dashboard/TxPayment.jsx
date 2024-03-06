@@ -47,7 +47,6 @@ function TxPayment(){
     }
 
     let paymentMethodData = Object.values(paymentMethods)
-    console.log(paymentMethodData)
     const paymentMethodOptions = [
         ...defaultOption,
         ...paymentMethodData.map((payment) => ({
@@ -108,13 +107,19 @@ function TxPayment(){
             const tx = {
                 amount: amount,
                 type: paymentMethod.value === "sendmo",
+                bank: paymentMethod.value || null,
                 recipient: to.value,
                 strict: strictMode === "strict"
             }
-            const txId = await dispatch(transactionActions.addTx(tx))
-            handleComments(txId)
-            setTx(tx)
-            clearInputs()
+            const res = await dispatch(transactionActions.addTx(tx))
+            if(!res?.errors){
+                handleComments(txId)
+                setTx(tx)
+                clearInputs()
+                return
+            }
+            errors.amount = "Insufficient funds!"
+            setErrors(errors)
         }
 
        setErrors(errors)
@@ -130,7 +135,6 @@ function TxPayment(){
             const response = await fetch("/api/payments/link")
             const res = await response.json()
             setLinkToken(res.link_token)
-            console.log(res)
         }
         asyncFn()
     }, [])
@@ -138,7 +142,6 @@ function TxPayment(){
     const { open, ready } = usePlaidLink({
         token: linkToken,
         onSuccess: async (public_token, metadata) => {
-            console.log(public_token)
             const response = await fetch('/api/payments/access', {
                 method: 'POST',
                 headers: {
