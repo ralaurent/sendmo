@@ -48,6 +48,8 @@ def upgrade():
     sa.Column('cvc', sa.String(length=3), nullable=True),
     sa.Column('exp_date', sa.String(length=5), nullable=True),
     sa.Column('payment_method_id', sa.Integer(), nullable=True),
+    sa.Column('access_token', sa.String(length=255), nullable=True),
+    sa.Column('item_id', sa.String(length=255), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')

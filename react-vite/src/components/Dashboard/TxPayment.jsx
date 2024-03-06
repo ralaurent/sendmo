@@ -14,6 +14,7 @@ import { useModal } from '../../context/Modal';
 import { getElapsedTime, getElapsedTimeInSeconds, formatPrice, capitalize, containsOnlyDigits } from '../../utils';
 import { TxRxContext } from '../../context/TxRxContext';
 import AddCommentModal from '../ModalComponents/AddComment';
+import { usePlaidLink } from 'react-plaid-link'
 
 function TxPayment(){
     const dispatch = useDispatch()
@@ -21,6 +22,8 @@ function TxPayment(){
     const { setModalContent, setOnModalClose } = useModal();
     const [strictMode, setStrictMode] = useState(''); 
     const [amount, setAmount] = useState(''); 
+    const [linkToken, setLinkToken] = useState(''); 
+    const [publicToken, setPublicToken] = useState(''); 
     const [to, setTo] = useState(''); 
     const defaultOption = [{ value: 'sendmo', label: 'Sendmo balance' },]
     const [paymentMethod, setPaymentMethod] = useState(defaultOption[0]); 
@@ -83,13 +86,6 @@ function TxPayment(){
     const handleComments = (txId) => {
         setModalContent(<AddCommentModal txId={txId}/>);
     }
-
-    const configPlaid = async () => {
-        const response = await fetch("/api/payments/link")
-
-        const res = await response.json()
-        console.log(res)
-    }
     
     const sendTx = async (e) => {
         let errors = {}
@@ -127,6 +123,33 @@ function TxPayment(){
         setTo("")
         setAmount("")
     }
+
+    useEffect(() => {
+        async function asyncFn() {
+            const response = await fetch("/api/payments/link")
+            const res = await response.json()
+            setLinkToken(res.link_token)
+            console.log(res)
+        }
+        asyncFn()
+    }, [])
+
+    const { open, ready } = usePlaidLink({
+        token: linkToken,
+        onSuccess: async (public_token, metadata) => {
+            console.log(public_token)
+            const response = await fetch('/api/payments/access', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ public_token }),
+            })
+
+            const res = await response.json()
+            console.log(res)
+        },
+    })
 
     const CustomOption = ({ innerRef, innerProps, data }) => {
         const handleClickDelete = (e) => {
@@ -187,7 +210,7 @@ function TxPayment(){
                     onItemClick={closeMenu}
                     modalComponent={<PaymentMethodFormModal />}
                 />} */}
-                <div onClick={configPlaid} className='add-payment clickable'><u>Add payment method</u></div>
+                <button onClick={() => open()} disabled={!ready} className='add-payment clickable'><u>Add bank account</u></button>
             </div>
             <div className='dual-container'>
                 <label className='amount-label'>Amount <span className='errors'>{errors.amount}</span></label>

@@ -9,6 +9,7 @@ import plaid
 from plaid.api import plaid_api
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
+from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
 from plaid.model.products import Products
 from plaid.model.country_code import CountryCode
 
@@ -46,7 +47,39 @@ def get_plaid_link_token():
         return response.to_dict(), 200
     
     except Exception as e:
-        return { "errors": { "message": "Something went wrong!", "e": str(e), "test": os.environ.get('PLAID_REDIRECT_URI') } }, 500 
+        return { "errors": { "message": "Something went wrong!", "e": str(e) } }, 500 
+    
+
+@payment_method_routes.route('/access', methods=["POST"])
+def get_plaid_access_token():
+    user_id = current_user.id 
+
+    public_token = request.get_json()["public_token"]
+
+    try:
+        plaid_request = ItemPublicTokenExchangeRequest(
+        public_token=public_token
+        )
+        response = plaid_client.item_public_token_exchange(plaid_request)
+
+        access_token = response['access_token']
+        item_id = response['item_id']
+
+        params = {
+            "user_id": user_id,
+            "access_token": access_token,
+            "item_id": item_id,
+        }
+
+        payment_method = PaymentMethod(**params)
+
+        db.session.add(payment_method)
+        db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+        return { "errors": { "message": "Something went wrong!", "e": str(e) } }, 500 
+    
     
 
 @payment_method_routes.route('')

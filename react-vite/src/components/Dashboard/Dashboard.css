@@ -243,7 +243,10 @@
 
 .add-payment{
     color: var(--theme-color);
+    border: none;
     font-size: 14px;
+    width: fit-content;
+    background-color: transparent;
 }
 
 .tx-feed{
