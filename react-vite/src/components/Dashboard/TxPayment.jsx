@@ -14,6 +14,7 @@ import { useModal } from '../../context/Modal';
 import { getElapsedTime, getElapsedTimeInSeconds, formatPrice, capitalize, containsOnlyDigits } from '../../utils';
 import { TxRxContext } from '../../context/TxRxContext';
 import AddCommentModal from '../ModalComponents/AddComment';
+import { usePlaidLink } from 'react-plaid-link'
 
 function TxPayment(){
     const dispatch = useDispatch()
@@ -21,6 +22,8 @@ function TxPayment(){
     const { setModalContent, setOnModalClose } = useModal();
     const [strictMode, setStrictMode] = useState(''); 
     const [amount, setAmount] = useState(''); 
+    const [linkToken, setLinkToken] = useState(''); 
+    const [publicToken, setPublicToken] = useState(''); 
     const [to, setTo] = useState(''); 
     const defaultOption = [{ value: 'sendmo', label: 'Sendmo balance' },]
     const [paymentMethod, setPaymentMethod] = useState(defaultOption[0]); 
@@ -47,8 +50,8 @@ function TxPayment(){
     const paymentMethodOptions = [
         ...defaultOption,
         ...paymentMethodData.map((payment) => ({
-            value: payment.id,
-            label: `**** ${payment.last_4_digits} ${payment.exp_date} ${payment.cvc}`
+            value: payment.account_id,
+            label: `${payment.name} ${payment.mask}`
         }))
     ]
 
@@ -77,7 +80,7 @@ function TxPayment(){
 
     useEffect(() => {
         dispatch(usersActions.getUsers())
-        dispatch(paymentMethodActions.getPaymentMethod())
+        dispatch(paymentMethodActions.getPlaidPaymentMethod())
     }, [])
 
     const handleComments = (txId) => {
@@ -104,13 +107,19 @@ function TxPayment(){
             const tx = {
                 amount: amount,
                 type: paymentMethod.value === "sendmo",
+                bank: paymentMethod.value || null,
                 recipient: to.value,
                 strict: strictMode === "strict"
             }
-            const txId = await dispatch(transactionActions.addTx(tx))
-            handleComments(txId)
-            setTx(tx)
-            clearInputs()
+            const res = await dispatch(transactionActions.addTx(tx))
+            if(!res?.errors){
+                handleComments(txId)
+                setTx(tx)
+                clearInputs()
+                return
+            }
+            errors.amount = "Insufficient funds!"
+            setErrors(errors)
         }
 
        setErrors(errors)
@@ -120,6 +129,28 @@ function TxPayment(){
         setTo("")
         setAmount("")
     }
+
+    useEffect(() => {
+        async function asyncFn() {
+            const response = await fetch("/api/payments/link")
+            const res = await response.json()
+            setLinkToken(res.link_token)
+        }
+        asyncFn()
+    }, [])
+
+    const { open, ready } = usePlaidLink({
+        token: linkToken,
+        onSuccess: async (public_token, metadata) => {
+            const response = await fetch('/api/payments/access', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ public_token }),
+            })
+        },
+    })
 
     const CustomOption = ({ innerRef, innerProps, data }) => {
         const handleClickDelete = (e) => {
@@ -175,11 +206,12 @@ function TxPayment(){
                     onChange={handlePaymentMethodChange} 
                     components={{ Option: CustomOption }}
                     />
-                {<OpenModalMenuItem
+                {/* {<OpenModalMenuItem
                     textComponent={<div className='add-payment clickable'><u>Add payment method</u></div>}
                     onItemClick={closeMenu}
                     modalComponent={<PaymentMethodFormModal />}
-                />}
+                />} */}
+                <button onClick={() => open()} disabled={!ready} className='add-payment clickable'><u>Add bank account</u></button>
             </div>
             <div className='dual-container'>
                 <label className='amount-label'>Amount <span className='errors'>{errors.amount}</span></label>

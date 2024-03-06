@@ -1,11 +1,33 @@
+import os
 from flask import Blueprint, request
-from app.models import User, Transaction, Comment, db
+from app.models import User, Transaction, Comment, PaymentMethod, db
 from app.forms import TxForm, CommentForm
 from flask_login import current_user, login_user, logout_user, login_required
 from datetime import datetime, timedelta
 from sqlalchemy import or_
+import plaid
+from plaid.api import plaid_api
+from plaid.model.link_token_create_request import LinkTokenCreateRequest
+from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
+from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
+from plaid.model.products import Products
+from plaid.model.accounts_get_request import AccountsGetRequest
+from plaid.model.accounts_get_request_options import AccountsGetRequestOptions
+from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
+from plaid.model.accounts_balance_get_request_options import AccountsBalanceGetRequestOptions
 
 tx_routes = Blueprint('transactions', __name__)
+
+configuration = plaid.Configuration(
+    host=plaid.Environment.Sandbox,
+    api_key={
+        'clientId': os.environ.get('PLAID_CLIENT'),
+        'secret': os.environ.get('PLAID_SECRET'),
+    }
+)
+
+api_client = plaid.ApiClient(configuration)
+plaid_client = plaid_api.PlaidApi(api_client)
 
 @tx_routes.route('')
 def get_all_transactions():
@@ -50,6 +72,7 @@ def get_current_users_public_transactions():
 def send_transaction():
     user_id = current_user.id 
     from_sendmo_balance = request.get_json()["type"]
+    bank_account = request.get_json()["bank"]
     strict_mode = request.get_json()["strict"]
 
     form = TxForm()
@@ -72,10 +95,28 @@ def send_transaction():
 
                     else:
                         return { "errors": { "message": "Insufficient funds!" } }, 402 
+                else:
+                    user_id = current_user.id 
+                    # payment_methods = PaymentMethod.query.filter(PaymentMethod.user_id == user_id).all()
+
+                    payment_method = db.session.query(PaymentMethod).filter(PaymentMethod.user_id == user_id).first()
+
+                    access_token = payment_method.access_token 
+
+                    plaid_request = AccountsGetRequest(
+                        access_token=access_token
+                    )
+                    accounts_response = plaid_client.accounts_get(plaid_request)
+
+                    balance = [account["balances"] for account in accounts_response["accounts"] if account["account_id"] == bank_account]
+
+                    if round(form.amount.data, 5) <= round(balance[0]["available"], 5):
+                        pass
+                    else:
+                        return { "errors": { "message": "Insufficient funds!" } }, 402 
                     
                 recipient.balance = round(recipient.balance, 5) + round(form.amount.data, 5) 
                 db.session.commit()
-            
             
                 params = {
                     "sender_id": user_id,

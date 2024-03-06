@@ -13,6 +13,8 @@ class PaymentMethod(db.Model):
     cvc = db.Column(db.String(3), nullable=True)
     exp_date = db.Column(db.String(5), nullable=True)
     payment_method_id = db.Column(db.Integer, nullable=True)
+    access_token = db.Column(db.String, nullable=True)
+    item_id = db.Column(db.String, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     user_payment_method = db.relationship("User", back_populates="payment_method")

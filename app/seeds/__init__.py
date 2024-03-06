@@ -23,10 +23,8 @@ def seed():
         undo_comments()
         undo_requests()
         undo_transactions()
-        undo_payment_methods()
         undo_users() 
     seed_users()
-    seed_payment_methods()
     seed_transactions()
     seed_requests()
     seed_comments()
@@ -39,6 +37,5 @@ def undo():
     undo_comments()
     undo_requests()
     undo_transactions()
-    undo_payment_methods()
     undo_users()
     # Add other undo functions here

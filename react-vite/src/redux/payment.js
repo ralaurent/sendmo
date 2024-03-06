@@ -35,6 +35,18 @@ export const getPaymentMethod = () => async dispatch => {
     }
 }
 
+export const getPlaidPaymentMethod = () => async dispatch => {
+    const response = await fetch(`/api/payments/plaid`)
+  
+    if(response.ok){
+      const paymentMethods = await response.json()
+      dispatch(loadPaymentMethods(paymentMethods))
+    }else{
+        const errors = await response.json()
+        return errors
+    }
+}
+
 export const addPaymentMethod = (paymentMethod) => async dispatch => {
     const response = await fetch(`/api/payments`, {
         method: "POST",
@@ -91,17 +103,17 @@ const paymentMethodsReducer = (state = {}, action) => {
   switch (action.type) {
     case LOAD_PAYMENT_METHODS: {
       const paymentMethodsState = {};
-      if(action.paymentMethods.Payments.length){
-          action.paymentMethods.Payments.forEach((paymentMethod) => {
-            paymentMethodsState[paymentMethod.id] = paymentMethod;
+      if(action.paymentMethods.Payments.accounts.length){
+          action.paymentMethods.Payments.accounts.forEach((paymentMethod) => {
+            paymentMethodsState[paymentMethod.account_id] = paymentMethod;
           });
       }
       return paymentMethodsState;
     }
     case CREATE_PAYMENT_METHOD:
-      return { ...state, [action.paymentMethod.id]: action.paymentMethod };
+      return { ...state, [action.paymentMethod.account_id]: action.paymentMethod };
     case UPDATE_PAYMENT_METHOD:
-      return { ...state, [action.paymentMethod.id]: action.paymentMethod };
+      return { ...state, [action.paymentMethod.account_id]: action.paymentMethod };
     case REMOVE_PAYMENT_METHOD: {
       const newState = { ...state };
       delete newState[action.paymentMethodId];
