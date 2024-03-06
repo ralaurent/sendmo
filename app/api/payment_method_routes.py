@@ -3,6 +3,7 @@ import json
 from flask import Blueprint, request, jsonify
 from app.models import User, Transaction, Request, PaymentMethod, db
 from app.forms import TxForm, RxForm, PaymentMethodForm
+from app.api import create_plaid_client
 from flask_login import current_user, login_user, logout_user, login_required
 from datetime import datetime, timedelta
 from sqlalchemy import or_
@@ -19,18 +20,6 @@ from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
 from plaid.model.accounts_balance_get_request_options import AccountsBalanceGetRequestOptions
 
 payment_method_routes = Blueprint('payments', __name__)
-
-def create_plaid_client():
-    configuration = plaid.Configuration(
-        host=plaid.Environment.Sandbox,
-        api_key={
-            'clientId': os.environ.get('PLAID_CLIENT'),
-            'secret': os.environ.get('PLAID_SECRET'),
-        }
-    )
-
-    api_client = plaid.ApiClient(configuration)
-    return plaid_api.PlaidApi(api_client)
 
 plaid_client = create_plaid_client()
 
