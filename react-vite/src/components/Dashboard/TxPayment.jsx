@@ -131,6 +131,7 @@ function TxPayment(){
     }
 
     useEffect(() => {
+        console.log("LINK USEEFFECT CALLED")
         async function asyncFn() {
             const response = await fetch("/api/payments/link")
             const res = await response.json()
