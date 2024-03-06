@@ -83,6 +83,13 @@ function TxPayment(){
     const handleComments = (txId) => {
         setModalContent(<AddCommentModal txId={txId}/>);
     }
+
+    const configPlaid = async () => {
+        const response = await fetch("/api/payments/link")
+
+        const res = await response.json()
+        console.log(res)
+    }
     
     const sendTx = async (e) => {
         let errors = {}
@@ -175,11 +182,12 @@ function TxPayment(){
                     onChange={handlePaymentMethodChange} 
                     components={{ Option: CustomOption }}
                     />
-                {<OpenModalMenuItem
+                {/* {<OpenModalMenuItem
                     textComponent={<div className='add-payment clickable'><u>Add payment method</u></div>}
                     onItemClick={closeMenu}
                     modalComponent={<PaymentMethodFormModal />}
-                />}
+                />} */}
+                <div onClick={configPlaid} className='add-payment clickable'><u>Add payment method</u></div>
             </div>
             <div className='dual-container'>
                 <label className='amount-label'>Amount <span className='errors'>{errors.amount}</span></label>
