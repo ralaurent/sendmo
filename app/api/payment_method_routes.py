@@ -76,6 +76,8 @@ def get_plaid_access_token():
         db.session.add(payment_method)
         db.session.commit()
 
+        return { "message": "Successfully added payment method!" }, 201
+
     except Exception as e:
         db.session.rollback()
         return { "errors": { "message": "Something went wrong!", "e": str(e) } }, 500 

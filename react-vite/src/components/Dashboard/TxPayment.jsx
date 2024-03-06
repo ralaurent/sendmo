@@ -145,9 +145,6 @@ function TxPayment(){
                 },
                 body: JSON.stringify({ public_token }),
             })
-
-            const res = await response.json()
-            console.log(res)
         },
     })
 
