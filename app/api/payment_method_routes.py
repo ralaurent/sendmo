@@ -1,4 +1,5 @@
 import os
+import json
 from flask import Blueprint, request, jsonify
 from app.models import User, Transaction, Request, PaymentMethod, db
 from app.forms import TxForm, RxForm, PaymentMethodForm
@@ -12,6 +13,10 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
 from plaid.model.products import Products
 from plaid.model.country_code import CountryCode
+from plaid.model.accounts_get_request import AccountsGetRequest
+from plaid.model.accounts_get_request_options import AccountsGetRequestOptions
+from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
+from plaid.model.accounts_balance_get_request_options import AccountsBalanceGetRequestOptions
 
 payment_method_routes = Blueprint('payments', __name__)
 
@@ -83,6 +88,26 @@ def get_plaid_access_token():
         return { "errors": { "message": "Something went wrong!", "e": str(e) } }, 500 
     
     
+@payment_method_routes.route('/plaid')
+def get_current_users_plaid_banking_info():
+    user_id = current_user.id 
+    # payment_methods = PaymentMethod.query.filter(PaymentMethod.user_id == user_id).all()
+
+    payment_method = db.session.query(PaymentMethod).filter(PaymentMethod.user_id == user_id).one()
+
+    access_token = payment_method.access_token 
+
+    try:
+        request = AccountsGetRequest(
+            access_token=access_token
+        )
+        accounts_response = plaid_client.accounts_get(request)
+        return {"Payments": accounts_response.to_dict()}
+    except plaid.ApiException as e:
+        response = json.loads(e.body)
+        return jsonify({'error': {'status_code': e.status, 'display_message':
+                        response['error_message'], 'error_code': response['error_code'], 'error_type': response['error_type']}})
+
 
 @payment_method_routes.route('')
 def get_current_users_payment_info():

@@ -47,11 +47,12 @@ function TxPayment(){
     }
 
     let paymentMethodData = Object.values(paymentMethods)
+    console.log(paymentMethodData)
     const paymentMethodOptions = [
         ...defaultOption,
         ...paymentMethodData.map((payment) => ({
-            value: payment.id,
-            label: `**** ${payment.last_4_digits} ${payment.exp_date} ${payment.cvc}`
+            value: payment.account_id,
+            label: `${payment.name} ${payment.mask}`
         }))
     ]
 
@@ -80,7 +81,7 @@ function TxPayment(){
 
     useEffect(() => {
         dispatch(usersActions.getUsers())
-        dispatch(paymentMethodActions.getPaymentMethod())
+        dispatch(paymentMethodActions.getPlaidPaymentMethod())
     }, [])
 
     const handleComments = (txId) => {
