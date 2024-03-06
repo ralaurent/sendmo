@@ -11,10 +11,11 @@ SendMo is a fully functional banking system that goes beyond the traditional tra
 * Accept or decline incoming requests.
 * Instant creation of transactions upon request acceptance.
 
-### Credit Card Management
+### Banking Account Management with Plaid
 
-* Add, update, and delete credit card information seamlessly.
+* Add, update, and delete banking information seamlessly.
 * Ensure your payment methods are up-to-date and secure.
+* Plaid integration also allows real-time bank balance tracking, limiting overdrafts and chargebacks.
 
 ### Real-time Updates with Socket.IO
 
