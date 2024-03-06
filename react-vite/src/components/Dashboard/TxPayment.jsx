@@ -80,7 +80,6 @@ function TxPayment(){
 
     useEffect(() => {
         dispatch(usersActions.getUsers())
-        dispatch(paymentMethodActions.getPlaidPaymentMethod())
     }, [])
 
     const handleComments = (txId) => {
@@ -131,7 +130,6 @@ function TxPayment(){
     }
 
     useEffect(() => {
-        console.log("LINK USEEFFECT CALLED")
         async function asyncFn() {
             const response = await fetch("/api/payments/link")
             const res = await response.json()
@@ -139,6 +137,7 @@ function TxPayment(){
             console.log(res)
         }
         asyncFn()
+        dispatch(paymentMethodActions.getPlaidPaymentMethod())
     }, [])
 
     const { open, ready } = usePlaidLink({
