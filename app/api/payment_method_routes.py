@@ -28,23 +28,37 @@ def get_plaid_link_token():
     user_id = current_user.id 
     user = db.session.get(User, user_id)
 
-    try:
-        request = LinkTokenCreateRequest(
-            products=[Products("auth")],
-            client_name=user.username,
-            country_codes=[CountryCode('US')],
-            redirect_uri=os.environ.get('PLAID_REDIRECT_URI'),
-            language='en',
-            user=LinkTokenCreateRequestUser(
-                client_user_id=str(user_id)
-            )
+    request = LinkTokenCreateRequest(
+        products=[Products("auth")],
+        client_name=user.username,
+        country_codes=[CountryCode('US')],
+        redirect_uri=os.environ.get('PLAID_REDIRECT_URI'),
+        language='en',
+        user=LinkTokenCreateRequestUser(
+            client_user_id=str(user_id)
         )
-        response = plaid_client.link_token_create(request)
+    )
+    response = plaid_client.link_token_create(request)
 
-        return response.to_dict(), 200
+    return response.to_dict(), 200
+
+    # try:
+    #     request = LinkTokenCreateRequest(
+    #         products=[Products("auth")],
+    #         client_name=user.username,
+    #         country_codes=[CountryCode('US')],
+    #         redirect_uri=os.environ.get('PLAID_REDIRECT_URI'),
+    #         language='en',
+    #         user=LinkTokenCreateRequestUser(
+    #             client_user_id=str(user_id)
+    #         )
+    #     )
+    #     response = plaid_client.link_token_create(request)
+
+    #     return response.to_dict(), 200
     
-    except Exception as e:
-        return { "errors": { "message": "Something went wrong!", "e": str(e) } }, 500 
+    # except Exception as e:
+    #     return { "errors": { "message": "Something went wrong!", "e": str(e) } }, 500 
     
 
 @payment_method_routes.route('/access', methods=["POST"])
