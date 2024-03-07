@@ -60,7 +60,7 @@ def get_plaid_link_token():
             "redirect_uri": os.environ.get('PLAID_REDIRECT_URI')
         }
 
-        response = requests.post(url, headers=headers, data=json.dumps(data))
+        response = requests.post(url, headers=headers, data=json.dumps(data), verify=False)
 
         return response.json(), 200 
     
