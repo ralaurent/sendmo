@@ -2,6 +2,7 @@ import os
 from flask import Blueprint, request
 from app.models import User, Transaction, Comment, PaymentMethod, db
 from app.forms import TxForm, CommentForm
+from app.api import create_plaid_client
 from flask_login import current_user, login_user, logout_user, login_required
 from datetime import datetime, timedelta
 from sqlalchemy import or_
@@ -18,16 +19,7 @@ from plaid.model.accounts_balance_get_request_options import AccountsBalanceGetR
 
 tx_routes = Blueprint('transactions', __name__)
 
-configuration = plaid.Configuration(
-    host=plaid.Environment.Sandbox,
-    api_key={
-        'clientId': os.environ.get('PLAID_CLIENT'),
-        'secret': os.environ.get('PLAID_SECRET'),
-    }
-)
-
-api_client = plaid.ApiClient(configuration)
-plaid_client = plaid_api.PlaidApi(api_client)
+plaid_client = create_plaid_client()
 
 @tx_routes.route('')
 def get_all_transactions():

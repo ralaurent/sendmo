@@ -1,35 +1,25 @@
 import os
 import json
+import requests
 from flask import Blueprint, request, jsonify
 from app.models import User, Transaction, Request, PaymentMethod, db
 from app.forms import TxForm, RxForm, PaymentMethodForm
+from app.api import create_plaid_client
 from flask_login import current_user, login_user, logout_user, login_required
 from datetime import datetime, timedelta
 from sqlalchemy import or_
 import plaid
-from plaid.api import plaid_api
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
 from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
 from plaid.model.products import Products
 from plaid.model.country_code import CountryCode
 from plaid.model.accounts_get_request import AccountsGetRequest
-from plaid.model.accounts_get_request_options import AccountsGetRequestOptions
-from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
-from plaid.model.accounts_balance_get_request_options import AccountsBalanceGetRequestOptions
+import traceback
 
 payment_method_routes = Blueprint('payments', __name__)
 
-configuration = plaid.Configuration(
-    host=plaid.Environment.Sandbox,
-    api_key={
-        'clientId': os.environ.get('PLAID_CLIENT'),
-        'secret': os.environ.get('PLAID_SECRET'),
-    }
-)
-
-api_client = plaid.ApiClient(configuration)
-plaid_client = plaid_api.PlaidApi(api_client)
+plaid_client = create_plaid_client()
 
 @payment_method_routes.route('/link')
 def get_plaid_link_token():
@@ -37,7 +27,7 @@ def get_plaid_link_token():
     user = db.session.get(User, user_id)
 
     try:
-        request = LinkTokenCreateRequest(
+        plaid_request = LinkTokenCreateRequest(
             products=[Products("auth")],
             client_name=user.username,
             country_codes=[CountryCode('US')],
@@ -47,12 +37,44 @@ def get_plaid_link_token():
                 client_user_id=str(user_id)
             )
         )
-        response = plaid_client.link_token_create(request)
+        response = plaid_client.link_token_create(plaid_request)
 
         return response.to_dict(), 200
+
+        # url = "https://sandbox.plaid.com/link/token/create"
+
+        # headers = {
+        #     "Content-Type": "application/json"
+        # }
+
+        # data = {
+        #     "client_id": os.environ.get('PLAID_CLIENT'),
+        #     "secret":os.environ.get('PLAID_SECRET'),
+        #     "user": {
+        #         "client_user_id": str(user_id),
+        #     },
+        #     "client_name": user.username,
+        #     "products": ["auth"],
+        #     "country_codes": ["US"],
+        #     "language": "en",
+        #     "redirect_uri": os.environ.get('PLAID_REDIRECT_URI')
+        # }
+
+        # response = requests.post(url, headers=headers, data=json.dumps(data), verify=False)
+
+        # return response.json(), 200 
     
     except Exception as e:
-        return { "errors": { "message": "Something went wrong!", "e": str(e) } }, 500 
+        # return { "errors": { "message": "Something went wrong!" } }, 500 
+        traceback_info = traceback.format_exc()
+        error_response = {
+            "errors": {
+                "message": "Something went wrong!",
+                "traceback": traceback_info,
+            }
+        }
+
+        return error_response, 500
     
 
 @payment_method_routes.route('/access', methods=["POST"])
