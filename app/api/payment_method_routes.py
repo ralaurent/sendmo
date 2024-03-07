@@ -40,16 +40,7 @@ def get_plaid_link_token():
         return response.to_dict(), 200
     
     except Exception as e:
-        # return { "errors": { "message": "Something went wrong!" } }, 500 
-        error_message = f"Error generating Plaid link token: {str(e)}"
-        print(error_message)  # Log the error to your server logs
-
-        return jsonify({
-            "errors": {
-                "message": "Something went wrong!",
-                "details": error_message
-            }
-        }), 500
+        return { "errors": { "message": "Something went wrong!", "e": e, "keys": [os.environ.get('PLAID_CLIENT'), os.environ.get('PLAID_SECRET')] } }, 500 
     
 
 @payment_method_routes.route('/access', methods=["POST"])
