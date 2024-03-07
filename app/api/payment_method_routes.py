@@ -40,17 +40,20 @@ def get_plaid_link_token():
 
         return response.to_dict(), 200
     
-    except Exception as e:
-        # return { "errors": { "message": "Something went wrong!" } }, 500 
-        traceback_info = traceback.format_exc()
-        error_response = {
-            "errors": {
-                "message": "Something went wrong!",
-                "traceback": traceback_info,
-            }
-        }
+    # except Exception as e:
+    #     # return { "errors": { "message": "Something went wrong!" } }, 500 
+    #     traceback_info = traceback.format_exc()
+    #     error_response = {
+    #         "errors": {
+    #             "message": "Something went wrong!",
+    #             "traceback": traceback_info,
+    #         }
+    #     }
 
-        return error_response, 500
+    #     return error_response, 500
+    except plaid.ApiException as e:
+        error_response = json.loads(e.body)
+        return {"errors": {"message": "Plaid API error", "details": error_response}}, 500
     
 
 @payment_method_routes.route('/access', methods=["POST"])
