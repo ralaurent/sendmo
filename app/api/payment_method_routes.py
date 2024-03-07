@@ -25,7 +25,7 @@ def get_plaid_link_token():
     user = db.session.get(User, user_id)
 
     try:
-        request = LinkTokenCreateRequest(
+        plaid_request = LinkTokenCreateRequest(
             products=[Products("auth")],
             client_name=user.username,
             country_codes=[CountryCode('US')],
@@ -35,12 +35,12 @@ def get_plaid_link_token():
                 client_user_id=str(user_id)
             )
         )
-        response = plaid_client.link_token_create(request)
+        response = plaid_client.link_token_create(plaid_request)
 
         return response.to_dict(), 200
     
     except Exception as e:
-        return { "errors": { "message": "Something went wrong!", "e": str(e), "keys": [os.environ.get('PLAID_CLIENT'), os.environ.get('PLAID_SECRET')] } }, 500 
+        return { "errors": { "message": "Something went wrong!", "e": str(e), "keys": [os.environ.get('PLAID_REDIRECT_URI')] } }, 500 
     
 
 @payment_method_routes.route('/access', methods=["POST"])
