@@ -16,6 +16,8 @@ from plaid.model.products import Products
 from plaid.model.country_code import CountryCode
 from plaid.model.accounts_get_request import AccountsGetRequest
 import traceback
+import gevent.monkey
+gevent.monkey.patch_all(thread=False)
 
 payment_method_routes = Blueprint('payments', __name__)
 
