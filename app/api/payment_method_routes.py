@@ -39,9 +39,9 @@ def get_plaid_link_token():
                 client_user_id=str(user_id)
             )
         )
-        # response = plaid_client.link_token_create(request)
+        response = plaid_client.link_token_create(request)
 
-        return {} # response.to_dict(), 200
+        return response.to_dict(), 200
     
     except Exception as e:
         return { "errors": { "message": "Something went wrong!", "e": str(e) } }, 500 
