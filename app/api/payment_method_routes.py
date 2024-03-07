@@ -8,16 +8,12 @@ from flask_login import current_user, login_user, logout_user, login_required
 from datetime import datetime, timedelta
 from sqlalchemy import or_
 import plaid
-from plaid.api import plaid_api
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
 from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
 from plaid.model.products import Products
 from plaid.model.country_code import CountryCode
 from plaid.model.accounts_get_request import AccountsGetRequest
-from plaid.model.accounts_get_request_options import AccountsGetRequestOptions
-from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
-from plaid.model.accounts_balance_get_request_options import AccountsBalanceGetRequestOptions
 
 payment_method_routes = Blueprint('payments', __name__)
 
@@ -28,37 +24,32 @@ def get_plaid_link_token():
     user_id = current_user.id 
     user = db.session.get(User, user_id)
 
-    request = LinkTokenCreateRequest(
-        products=[Products("auth")],
-        client_name=user.username,
-        country_codes=[CountryCode('US')],
-        redirect_uri=os.environ.get('PLAID_REDIRECT_URI'),
-        language='en',
-        user=LinkTokenCreateRequestUser(
-            client_user_id=str(user_id)
+    try:
+        request = LinkTokenCreateRequest(
+            products=[Products("auth")],
+            client_name=user.username,
+            country_codes=[CountryCode('US')],
+            redirect_uri=os.environ.get('PLAID_REDIRECT_URI'),
+            language='en',
+            user=LinkTokenCreateRequestUser(
+                client_user_id=str(user_id)
+            )
         )
-    )
-    response = plaid_client.link_token_create(request)
+        response = plaid_client.link_token_create(request)
 
-    return response.to_dict(), 200
-
-    # try:
-    #     request = LinkTokenCreateRequest(
-    #         products=[Products("auth")],
-    #         client_name=user.username,
-    #         country_codes=[CountryCode('US')],
-    #         redirect_uri=os.environ.get('PLAID_REDIRECT_URI'),
-    #         language='en',
-    #         user=LinkTokenCreateRequestUser(
-    #             client_user_id=str(user_id)
-    #         )
-    #     )
-    #     response = plaid_client.link_token_create(request)
-
-    #     return response.to_dict(), 200
+        return response.to_dict(), 200
     
-    # except Exception as e:
-    #     return { "errors": { "message": "Something went wrong!", "e": str(e) } }, 500 
+    except Exception as e:
+        # return { "errors": { "message": "Something went wrong!" } }, 500 
+        error_message = f"Error generating Plaid link token: {str(e)}"
+        print(error_message)  # Log the error to your server logs
+
+        return jsonify({
+            "errors": {
+                "message": "Something went wrong!",
+                "details": error_message
+            }
+        }), 500
     
 
 @payment_method_routes.route('/access', methods=["POST"])
