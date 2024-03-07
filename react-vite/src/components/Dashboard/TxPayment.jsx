@@ -137,7 +137,7 @@ function TxPayment(){
             console.log(res)
         }
         asyncFn()
-        dispatch(paymentMethodActions.getPlaidPaymentMethod())
+        // dispatch(paymentMethodActions.getPlaidPaymentMethod())
     }, [])
 
     const { open, ready } = usePlaidLink({
