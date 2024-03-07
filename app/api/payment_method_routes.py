@@ -1,5 +1,6 @@
 import os
 import json
+import requests
 from flask import Blueprint, request, jsonify
 from app.models import User, Transaction, Request, PaymentMethod, db
 from app.forms import TxForm, RxForm, PaymentMethodForm
@@ -26,34 +27,54 @@ def get_plaid_link_token():
     user = db.session.get(User, user_id)
 
     try:
-        plaid_request = LinkTokenCreateRequest(
-            products=[Products("auth")],
-            client_name=user.username,
-            country_codes=[CountryCode('US')],
-            redirect_uri=os.environ.get('PLAID_REDIRECT_URI'),
-            language='en',
-            user=LinkTokenCreateRequestUser(
-                client_user_id=str(user_id)
-            )
-        )
-        response = plaid_client.link_token_create(plaid_request)
+        # plaid_request = LinkTokenCreateRequest(
+        #     products=[Products("auth")],
+        #     client_name=user.username,
+        #     country_codes=[CountryCode('US')],
+        #     redirect_uri=os.environ.get('PLAID_REDIRECT_URI'),
+        #     language='en',
+        #     user=LinkTokenCreateRequestUser(
+        #         client_user_id=str(user_id)
+        #     )
+        # )
+        # response = plaid_client.link_token_create(plaid_request)
 
-        return response.to_dict(), 200
+        # return response.to_dict(), 200
+
+        url = "https://sandbox.plaid.com/link/token/create"
+
+        headers = {
+            "Content-Type": "application/json"
+        }
+
+        data = {
+            "client_id": os.environ.get('PLAID_CLIENT'),
+            "secret":os.environ.get('PLAID_SECRET'),
+            "user": {
+                "client_user_id": str(user_id),
+            },
+            "client_name": user.username,
+            "products": ["auth"],
+            "country_codes": ["US"],
+            "language": "en",
+            "redirect_uri": os.environ.get('PLAID_REDIRECT_URI')
+        }
+
+        response = requests.post(url, headers=headers, data=json.dumps(data))
+
+        return response.json(), 200 
     
-    # except Exception as e:
-    #     # return { "errors": { "message": "Something went wrong!" } }, 500 
-    #     traceback_info = traceback.format_exc()
-    #     error_response = {
-    #         "errors": {
-    #             "message": "Something went wrong!",
-    #             "traceback": traceback_info,
-    #         }
-    #     }
+    except Exception as e:
+        # return { "errors": { "message": "Something went wrong!" } }, 500 
+        traceback_info = traceback.format_exc()
+        error_response = {
+            "errors": {
+                "message": "Something went wrong!",
+                "traceback": traceback_info,
+            }
+        }
 
-    #     return error_response, 500
-    except plaid.ApiException as e:
-        error_response = json.loads(e.body)
-        return {"errors": {"message": "Plaid API error", "details": error_response}}, 500
+        return error_response, 500
     
 
 @payment_method_routes.route('/access', methods=["POST"])
