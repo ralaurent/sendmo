@@ -1,6 +1,6 @@
 import os
 import json
-import requests
+# import requests
 from flask import Blueprint, request, jsonify
 from app.models import User, Transaction, Request, PaymentMethod, db
 from app.forms import TxForm, RxForm, PaymentMethodForm
