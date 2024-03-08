@@ -95,14 +95,18 @@ def get_current_users_plaid_banking_info():
 
     access_token = payment_method.access_token 
 
-    try:
-        plaid_request = AccountsGetRequest(
-            access_token=access_token
-        )
-        accounts_response = plaid_client.accounts_get(plaid_request)
-        return {"Payments": accounts_response.to_dict()}, 200
-    except Exception as e:
-        return { "errors": { "message": "Something went wrong!" } }, 500 
+    if access_token:
+        try:
+            plaid_request = AccountsGetRequest(
+                access_token=access_token
+            )
+            accounts_response = plaid_client.accounts_get(plaid_request)
+            
+            return {"Payments": accounts_response.to_dict()}, 200
+        except Exception as e:
+            return { "errors": { "message": "Something went wrong!" } }, 500 
+        
+    return { "errors": { "message": "Access token not found!" } }, 500 
 
 
 @payment_method_routes.route('')
