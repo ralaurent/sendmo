@@ -10,7 +10,7 @@ from flask_login import login_user, current_user
 import traceback
 from .test_tx_routes import test_get_user1, test_get_user2
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv() 
 
 def _extract_csrf(set_cookie_header):
     if set_cookie_header:

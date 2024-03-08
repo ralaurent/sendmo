@@ -23,7 +23,8 @@ sqlalchemy==1.4.46; python_version >= '2.7' and python_version not in '3.0, 3.1,
 werkzeug==2.2.2; python_version >= '3.7'
 wtforms==3.0.1; python_version >= '3.7'
 zipp==3.17.0; python_version >= '3.8'
-plaid-python==19.0.0
-eventlet==0.30.2
-requests
 flask-socketio
+# eventlet==0.30.2
+gevent==24.2.1
+plaid-python==19.0.0
+urllib3==2.2.1

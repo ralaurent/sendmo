@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import traceback
 import time
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv() 
 
 def _extract_csrf(set_cookie_header):
     if set_cookie_header:

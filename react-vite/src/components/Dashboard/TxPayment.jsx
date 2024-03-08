@@ -110,8 +110,8 @@ function TxPayment(){
                 recipient: to.value,
                 strict: strictMode === "strict"
             }
-            const res = await dispatch(transactionActions.addTx(tx))
-            if(!res?.errors){
+            const txId = await dispatch(transactionActions.addTx(tx))
+            if(!txId?.errors){     
                 handleComments(txId)
                 setTx(tx)
                 clearInputs()
@@ -134,11 +134,15 @@ function TxPayment(){
             const response = await fetch("/api/payments/link")
             const res = await response.json()
             setLinkToken(res.link_token)
-            console.log(res)
         }
         asyncFn()
-        // dispatch(paymentMethodActions.getPlaidPaymentMethod())
     }, [])
+
+    useEffect(() => {
+        if(linkToken){
+            dispatch(paymentMethodActions.getPlaidPaymentMethod())
+        }
+    }, [linkToken])
 
     const { open, ready } = usePlaidLink({
         token: linkToken,
@@ -150,13 +154,14 @@ function TxPayment(){
                 },
                 body: JSON.stringify({ public_token }),
             })
+            dispatch(paymentMethodActions.getPlaidPaymentMethod())
         },
     })
 
     const CustomOption = ({ innerRef, innerProps, data }) => {
         const handleClickDelete = (e) => {
             e.stopPropagation()
-            dispatch(paymentMethodActions.deletePaymentMethod(data.value))
+            // dispatch(paymentMethodActions.deletePaymentMethod(data.value))
         };
 
         const index = paymentMethodOptions.findIndex(pay => pay.value === data.value)
@@ -168,7 +173,7 @@ function TxPayment(){
               
             {data.value !== "sendmo" &&
                 <div className='select-content-icons-container'>
-                    <OpenModalButton
+                    {/* <OpenModalButton
                     onButtonClick={() => {}}
                     modalComponent={<PaymentMethodFormModal paymentMethodId={data.value} data={{ last4Digits: paymentMethodData[1], expDate: paymentMethodData[2], cvc: paymentMethodData[3] }}/>}
                     buttonComponent={
@@ -176,7 +181,7 @@ function TxPayment(){
                             <CreditCard className='select-content-icons'/>
                         </div>
                     }
-                    />
+                    /> */}
                     <div style={{padding: "5px", display: "flex",}} onClick={handleClickDelete}>
                         <X className='select-content-icons' />
                     </div>    
