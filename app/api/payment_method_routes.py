@@ -88,12 +88,12 @@ def get_plaid_access_token():
     
 @payment_method_routes.route('/plaid')
 def get_current_users_plaid_banking_info():
-    user_id = current_user.id 
+    user_id = 1 #current_user.id 
     # payment_methods = PaymentMethod.query.filter(PaymentMethod.user_id == user_id).all()
 
     payment_method = db.session.query(PaymentMethod).filter(PaymentMethod.user_id == user_id).first()
 
-    access_token = payment_method.access_token 
+    access_token = getattr(payment_method, 'access_token', None)
 
     if access_token:
         try:
