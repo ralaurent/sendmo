@@ -133,7 +133,6 @@ function TxPayment(){
         async function asyncFn() {
             const response = await fetch("/api/payments/link")
             const res = await response.json()
-            console.log(res)
             setLinkToken(res.link_token)
         }
         asyncFn()
