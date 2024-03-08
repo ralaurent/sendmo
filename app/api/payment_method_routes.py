@@ -39,29 +39,6 @@ def get_plaid_link_token():
         response = plaid_client.link_token_create(plaid_request)
 
         return response.to_dict(), 200
-
-        # url = "https://sandbox.plaid.com/link/token/create"
-
-        # headers = {
-        #     "Content-Type": "application/json"
-        # }
-
-        # data = {
-        #     "client_id": os.environ.get('PLAID_CLIENT'),
-        #     "secret":os.environ.get('PLAID_SECRET'),
-        #     "user": {
-        #         "client_user_id": str(user_id),
-        #     },
-        #     "client_name": user.username,
-        #     "products": ["auth"],
-        #     "country_codes": ["US"],
-        #     "language": "en",
-        #     "redirect_uri": os.environ.get('PLAID_REDIRECT_URI')
-        # }
-
-        # response = requests.post(url, headers=headers, data=json.dumps(data), verify=False)
-
-        # return response.json(), 200 
     
     except Exception as e:
         # return { "errors": { "message": "Something went wrong!" } }, 500 
@@ -106,7 +83,7 @@ def get_plaid_access_token():
 
     except Exception as e:
         db.session.rollback()
-        return { "errors": { "message": "Something went wrong!", "e": str(e) } }, 500 
+        return { "errors": { "message": "Something went wrong!" } }, 500 
     
     
 @payment_method_routes.route('/plaid')
@@ -114,7 +91,7 @@ def get_current_users_plaid_banking_info():
     user_id = current_user.id 
     # payment_methods = PaymentMethod.query.filter(PaymentMethod.user_id == user_id).all()
 
-    payment_method = db.session.query(PaymentMethod).filter(PaymentMethod.user_id == user_id).one()
+    payment_method = db.session.query(PaymentMethod).filter(PaymentMethod.user_id == user_id).first()
 
     access_token = payment_method.access_token 
 
@@ -123,11 +100,9 @@ def get_current_users_plaid_banking_info():
             access_token=access_token
         )
         accounts_response = plaid_client.accounts_get(plaid_request)
-        return {"Payments": accounts_response.to_dict()}
-    except plaid.ApiException as e:
-        response = json.loads(e.body)
-        return jsonify({'error': {'status_code': e.status, 'display_message':
-                        response['error_message'], 'error_code': response['error_code'], 'error_type': response['error_type']}})
+        return {"Payments": accounts_response.to_dict()}, 200
+    except Exception as e:
+        return { "errors": { "message": "Something went wrong!" } }, 500 
 
 
 @payment_method_routes.route('')
