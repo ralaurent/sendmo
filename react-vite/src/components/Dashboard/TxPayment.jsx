@@ -136,8 +136,13 @@ function TxPayment(){
             setLinkToken(res.link_token)
         }
         asyncFn()
-        dispatch(paymentMethodActions.getPlaidPaymentMethod())
     }, [])
+
+    useEffect(() => {
+        if(linkToken){
+            dispatch(paymentMethodActions.getPlaidPaymentMethod())
+        }
+    }, [linkToken])
 
     const { open, ready } = usePlaidLink({
         token: linkToken,
