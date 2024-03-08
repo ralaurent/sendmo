@@ -43,7 +43,6 @@ export const getPlaidPaymentMethod = () => async dispatch => {
       dispatch(loadPaymentMethods(paymentMethods))
     }else{
         const errors = await response.json()
-        console.log(errors)
         return errors
     }
 }
